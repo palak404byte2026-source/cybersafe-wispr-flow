@@ -1,4 +1,4 @@
-// Cybersecurity Password Evaluation Engine
+// Cybersecurity Password Evaluation Engine - 100% Client-Side
 
 const COMMON_BREACHED_PASSWORDS = new Set([
   '123456', 'password', '12345678', 'qwerty', '123456789', '12345', '1234', '111111',
@@ -12,23 +12,23 @@ export function evaluatePassword(password) {
   if (!password || password.length === 0) {
     return {
       score: 0,
-      label: 'Empty',
+      label: 'Very Weak',
       color: 'slate',
       entropy: 0,
       crackTime: 'Instant',
       isBreached: false,
-      checks: {
-        length8: false,
-        length12: false,
-        length16: false,
-        hasLower: false,
-        hasUpper: false,
-        hasNumber: false,
-        hasSymbol: false,
-        noSequences: true,
-        noRepeats: true,
-      },
-      feedback: ['Enter a password to begin real-time analysis.'],
+      requirements: [
+        { id: 'length', label: 'At least 8 characters (12+ recommended)', met: false },
+        { id: 'uppercase', label: 'Uppercase letters (A-Z)', met: false },
+        { id: 'lowercase', label: 'Lowercase letters (a-z)', met: false },
+        { id: 'numbers', label: 'Numbers (0-9)', met: false },
+        { id: 'symbols', label: 'Special characters (!@#$%^&*)', met: false },
+      ],
+      recommendations: [
+        'Enter a password to begin real-time analysis.',
+        'Aim for at least 12 characters to defend against automated brute-force attacks.',
+        'Mix uppercase, lowercase, numbers, and symbols.'
+      ],
       charsetSize: 0,
     };
   }
@@ -39,99 +39,96 @@ export function evaluatePassword(password) {
   const hasNumber = /[0-9]/.test(password);
   const hasSymbol = /[^a-zA-Z0-9]/.test(password);
 
-  // Character set size
+  // Character set size for entropy calculation
   let charsetSize = 0;
   if (hasLower) charsetSize += 26;
   if (hasUpper) charsetSize += 26;
   if (hasNumber) charsetSize += 10;
   if (hasSymbol) charsetSize += 33;
 
-  // Entropy calculation: E = length * log2(charsetSize)
+  // Information Entropy: E = length * log2(charsetSize)
   const entropy = charsetSize > 0 ? Math.round(length * Math.log2(charsetSize)) : 0;
 
-  // Detect repetitive characters (e.g. "aaaa", "111")
+  // Repetitive and sequential pattern detections
   const hasRepeats = /(.)\1{2,}/i.test(password);
-
-  // Detect simple sequences (e.g. "123", "abc", "qwe")
   const sequences = ['12345', '23456', '34567', '45678', '56789', 'abcde', 'bcdef', 'cdefg', 'defgh', 'qwerty', 'asdfg', 'zxcvb'];
   const lowerPass = password.toLowerCase();
   const hasSequences = sequences.some(seq => lowerPass.includes(seq));
 
-  // Breached check
+  // Breached dictionary check
   const isBreached = COMMON_BREACHED_PASSWORDS.has(lowerPass);
 
-  // Checks object
-  const checks = {
-    length8: length >= 8,
-    length12: length >= 12,
-    length16: length >= 16,
-    hasLower,
-    hasUpper,
-    hasNumber,
-    hasSymbol,
-    noSequences: !hasSequences,
-    noRepeats: !hasRepeats,
-  };
+  // 5 Individual Requirement Indicators
+  const requirements = [
+    { id: 'length', label: 'Length: At least 8 characters (12+ recommended)', met: length >= 8 },
+    { id: 'uppercase', label: 'Uppercase letters: At least one letter (A-Z)', met: hasUpper },
+    { id: 'lowercase', label: 'Lowercase letters: At least one letter (a-z)', met: hasLower },
+    { id: 'numbers', label: 'Numbers: At least one numeric digit (0-9)', met: hasNumber },
+    { id: 'symbols', label: 'Special characters: At least one symbol (!@#$%^&*)', met: hasSymbol },
+  ];
 
-  // Calculate composite score (0 to 100)
+  // Score calculation
   let rawScore = 0;
-
-  if (length >= 8) rawScore += 15;
-  if (length >= 12) rawScore += 20;
-  if (length >= 16) rawScore += 15;
+  if (length >= 8) rawScore += 20;
+  if (length >= 12) rawScore += 15;
+  if (length >= 16) rawScore += 10;
+  if (hasUpper) rawScore += 15;
   if (hasLower) rawScore += 10;
-  if (hasUpper) rawScore += 10;
-  if (hasNumber) rawScore += 10;
+  if (hasNumber) rawScore += 15;
   if (hasSymbol) rawScore += 15;
-  if (!hasRepeats) rawScore += 5;
-  if (!hasSequences) rawScore += 5;
 
-  if (isBreached) {
-    rawScore = Math.min(rawScore, 10);
-  }
+  if (hasRepeats) rawScore -= 10;
+  if (hasSequences) rawScore -= 10;
+  if (isBreached) rawScore = 5;
 
   const score = Math.max(5, Math.min(100, rawScore));
 
-  // Crack time estimation based on 10 billion guesses/second (modern GPU cluster)
-  const crackTime = calculateCrackTime(entropy, length, isBreached);
-
-  // Determine label & color
+  // 5 Strength Levels: Very Weak, Weak, Fair, Strong, Very Strong
   let label = 'Very Weak';
   let color = 'red';
 
   if (isBreached) {
-    label = 'Compromised';
+    label = 'Very Weak (Compromised)';
     color = 'red';
   } else if (score >= 85) {
-    label = 'Fortified';
+    label = 'Very Strong';
     color = 'emerald';
   } else if (score >= 65) {
     label = 'Strong';
     color = 'cyan';
   } else if (score >= 45) {
-    label = 'Moderate';
+    label = 'Fair';
     color = 'amber';
   } else if (score >= 25) {
     label = 'Weak';
     color = 'orange';
+  } else {
+    label = 'Very Weak';
+    color = 'red';
   }
 
-  // Actionable feedback
-  const feedback = [];
+  // Estimated crack time
+  const crackTime = calculateCrackTime(entropy, length, isBreached);
+
+  // Actionable recommendations
+  const recommendations = [];
   if (isBreached) {
-    feedback.push('CRITICAL: This password appears in known global breach databases! Never use it.');
+    recommendations.push('CRITICAL: This password appears in public data breach dumps! Never use it.');
   }
-  if (length < 12) {
-    feedback.push(`Increase length to 12+ characters (currently ${length}). Length exponentially raises crack time.`);
+  if (length < 8) {
+    recommendations.push(`Password is too short (${length} chars). Add at least ${8 - length} more characters to meet minimum requirements.`);
+  } else if (length < 12) {
+    recommendations.push(`Increase length to 12+ characters for significantly stronger resistance against GPU brute-forcing.`);
   }
-  if (!hasUpper) feedback.push('Add uppercase letters (A-Z) to widen the keyspace.');
-  if (!hasLower) feedback.push('Add lowercase letters (a-z).');
-  if (!hasNumber) feedback.push('Incorporate numeric digits (0-9).');
-  if (!hasSymbol) feedback.push('Add special symbols (!@#$%^&*) to defend against dictionary attacks.');
-  if (hasSequences) feedback.push('Avoid sequential patterns like "12345" or "qwerty" which automated tools guess first.');
-  if (hasRepeats) feedback.push('Avoid repeating identical characters consecutively.');
-  if (feedback.length === 0) {
-    feedback.push('Excellent! This password demonstrates high entropy and robust defense against brute-force attacks.');
+  if (!hasUpper) recommendations.push('Add at least one uppercase letter (A-Z) to broaden the keyspace.');
+  if (!hasLower) recommendations.push('Add at least one lowercase letter (a-z).');
+  if (!hasNumber) recommendations.push('Include numbers (0-9) to disrupt automated dictionary attacks.');
+  if (!hasSymbol) recommendations.push('Add special symbols (!@#$%^&*) for maximum complexity.');
+  if (hasSequences) recommendations.push('Remove predictable sequences like "12345" or "qwerty" which attack scripts test first.');
+  if (hasRepeats) recommendations.push('Avoid repeating identical characters consecutively (e.g. "aaa", "111").');
+
+  if (recommendations.length === 0) {
+    recommendations.push('Excellent! Your password meets all security criteria and exhibits high entropy.');
   }
 
   return {
@@ -141,9 +138,10 @@ export function evaluatePassword(password) {
     entropy,
     crackTime,
     isBreached,
-    checks,
-    feedback,
+    requirements,
+    recommendations,
     charsetSize,
+    length,
   };
 }
 
@@ -171,10 +169,10 @@ export function generateSecurePassword(options = {}) {
     avoidAmbiguous = true,
   } = options;
 
-  let upperChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // avoiding I, O if ambiguous
-  let lowerChars = 'abcdefghijkmnopqrstuvwxyz'; // avoiding l if ambiguous
-  let numberChars = '23456789'; // avoiding 0, 1
-  let symbolChars = '!@#$%^&*()_+~`|}{[]:;?><,./-=';
+  let upperChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  let lowerChars = 'abcdefghijkmnopqrstuvwxyz';
+  let numberChars = '23456789';
+  let symbolChars = '!@#$%^&*()_+~|}{[]:;?><,./-=';
 
   if (!avoidAmbiguous) {
     upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -214,7 +212,6 @@ export function generateSecurePassword(options = {}) {
     result.push(pool[Math.floor(Math.random() * pool.length)]);
   }
 
-  // Shuffle array using Fisher-Yates
   for (let i = result.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [result[i], result[j]] = [result[j], result[i]];

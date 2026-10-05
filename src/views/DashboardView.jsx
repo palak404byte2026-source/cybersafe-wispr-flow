@@ -1,21 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ShieldCheck,
   KeyRound,
   Fish,
   Link2,
   Activity,
-  BookOpen,
   ArrowRight,
-  AlertTriangle,
+  Sparkles,
+  Lock,
+  Bookmark,
   CheckCircle2,
   Clock,
-  Mic,
-  Zap,
   Radio,
-  FileCheck
+  FileCheck,
+  Zap,
+  Globe,
+  Smartphone,
+  Wifi,
+  Key
 } from 'lucide-react';
 import ScoreGauge from '../components/ScoreGauge';
+import { SECURITY_TIPS } from '../utils/securityTips';
 
 export default function DashboardView({
   setCurrentView,
@@ -25,345 +30,353 @@ export default function DashboardView({
   quizScore = 0,
   scannedUrlsCount = 0,
   completedChecklistCount = 0,
-  recentActivities = [],
+  masteredTips = {},
+  bookmarkedTips = {},
+  onToggleMasteredTip,
+  onToggleBookmarkTip,
 }) {
-  const threatBulletins = [
-    {
-      id: 1,
-      tag: 'Critical Alert',
-      title: 'Active QR-Code (Quishing) Campaigns Targeting Enterprise SSO',
-      summary: 'Attackers are physically placing fake parking and cafeteria QR stickers that direct users to reverse-proxy credential stealers.',
-      time: '12m ago',
-      level: 'high'
-    },
-    {
-      id: 2,
-      tag: 'Advisory',
-      title: 'MFA Prompt Bombing Attacks Surging Against Cloud Accounts',
-      summary: 'Threat actors trigger midnight push notifications hoping fatigued employees click "Approve" to silence alarms.',
-      time: '1h ago',
-      level: 'medium'
-    },
-    {
-      id: 3,
-      tag: 'Good News',
-      title: 'Passkeys Adoption Reduces Phishing Success by 98%',
-      summary: 'FIDO2 / WebAuthn cryptographic keys inherently neutralize man-in-the-middle proxy phishing.',
-      time: '3h ago',
-      level: 'info'
-    }
+  const [selectedTipCategory, setSelectedTipCategory] = useState('all');
+
+  const tipCategories = [
+    { id: 'all', label: 'All Tips' },
+    { id: 'passwords', label: 'Passwords' },
+    { id: 'phishing', label: 'Phishing' },
+    { id: 'browsing', label: 'Browsing' },
+    { id: 'devices', label: 'Devices' },
+    { id: 'network', label: 'Network' },
   ];
 
-  return (
-    <div className="space-y-8 animate-fade-in pb-12">
-      {/* Top Banner / Hero */}
-      <div className="relative overflow-hidden rounded-3xl border border-cyan-500/20 bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 p-6 md:p-8 shadow-2xl">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-1/3 -mb-16 w-60 h-60 rounded-full bg-blue-600/10 blur-3xl pointer-events-none"></div>
+  const displayedTips = SECURITY_TIPS.filter(
+    tip => selectedTipCategory === 'all' || tip.category === selectedTipCategory
+  );
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
+  return (
+    <div className="space-y-10 animate-fade-in pb-16">
+      {/* 1. Hero Section: Educational Cybersecurity Awareness Platform */}
+      <section className="relative overflow-hidden rounded-3xl border border-cyan-500/25 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 p-6 sm:p-10 shadow-2xl">
+        {/* Cyber glow effects */}
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-1/4 -mb-20 w-72 h-72 rounded-full bg-blue-600/10 blur-3xl pointer-events-none"></div>
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+          <div className="space-y-4 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
               <Radio className="w-3.5 h-3.5 animate-pulse text-cyan-400" />
-              <span>Wispr Flow Voice-Driven Development Challenge</span>
+              <span>Educational Cybersecurity Awareness Platform • Wispr Flow Challenge</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Cybersecurity Defense Command Center
+
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
+              Master Digital Defense with <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-400">CyberSafe</span>
             </h1>
-            <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-              Real-time threat evaluation, password entropy verification, and cognitive phishing defense.
-              Voice-enabled with <strong className="text-cyan-300">Wispr Flow</strong> navigation and zero backend exposure.
+
+            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+              CyberSafe is an interactive, educational cybersecurity awareness platform designed to help you analyze password resilience, identify sophisticated phishing traps, inspect deceptive URLs, and elevate your overall digital hygiene—all calculated <strong>100% locally in your browser with zero data collection</strong>.
             </p>
+
             <div className="pt-2 flex flex-wrap items-center gap-3">
               <button
+                type="button"
                 onClick={() => setCurrentView('passwords')}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all hover:scale-105"
+                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/25 transition-all hover:scale-105 active:scale-95"
               >
                 <KeyRound className="w-4 h-4" />
-                <span>Test Password Defense</span>
+                <span>Test Password Strength</span>
               </button>
               <button
+                type="button"
                 onClick={() => setCurrentView('quiz')}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold text-xs transition-all hover:scale-105"
+                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold text-xs sm:text-sm transition-all hover:scale-105 active:scale-95"
               >
                 <Fish className="w-4 h-4 text-cyan-400" />
-                <span>Take Phishing Lab</span>
+                <span>Take Phishing Quiz</span>
               </button>
               <button
+                type="button"
                 onClick={() => setCurrentView('url')}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold text-xs transition-all hover:scale-105"
+                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold text-xs sm:text-sm transition-all hover:scale-105 active:scale-95"
               >
                 <Link2 className="w-4 h-4 text-emerald-400" />
-                <span>Scan URL</span>
+                <span>Scan URL Safety</span>
               </button>
             </div>
           </div>
 
-          {/* Quick Score Highlight Widget */}
-          <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-5 flex flex-col items-center justify-center shrink-0 min-w-[240px] shadow-inner">
-            <span className="text-xs uppercase font-semibold tracking-wider text-slate-400 mb-2">
-              Security Posture
-            </span>
-            <ScoreGauge score={overallScore} size={130} strokeWidth={11} showDetails={true} />
-            <button
-              onClick={() => setCurrentView('score')}
-              className="mt-3 text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold group"
-            >
-              <span>Full Health Audit</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </button>
+          {/* Privacy & Zero-Log Educational Highlight */}
+          <div className="bg-slate-950/80 border border-slate-800/90 rounded-2xl p-6 flex flex-col justify-center shrink-0 lg:max-w-xs shadow-inner space-y-3">
+            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+              <Lock className="w-4 h-4" />
+              <span>Zero-Leak Guarantee</span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              No backend server. No telemetry. All password entropy algorithms, link heuristics, and quiz evaluations run exclusively inside your browser runtime.
+            </p>
+            <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+              <span>Client-Side</span>
+              <span className="text-emerald-400 font-semibold">Active & Secure</span>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* 4 Core Pillars KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Password Strength */}
-        <div
-          onClick={() => setCurrentView('passwords')}
-          className="group cursor-pointer p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-lg relative overflow-hidden"
-        >
-          <div className="flex items-start justify-between">
-            <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 group-hover:scale-110 transition-transform">
-              <KeyRound className="w-6 h-6" />
-            </div>
-            <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
-              Entropy Engine
-            </span>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
-              Password Strength
-            </h3>
-            <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-              Brute-force crack time, breach database cross-referencing & generator.
+      {/* 2. Interactive Cards for the 3 Main Security Tools + Overall Security Score Card */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
+              <Zap className="w-5 h-5 text-cyan-400" />
+              <span>Core Defense Tools & Security Score</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+              Click any tool card below to run interactive simulations and view live assessments.
             </p>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-            <span className="text-slate-400">Current Test:</span>
-            <span className={`font-mono font-bold ${passwordScore > 70 ? 'text-emerald-400' : passwordScore > 40 ? 'text-amber-400' : 'text-slate-400'}`}>
-              {passwordScore > 0 ? `${passwordScore}/100` : 'Not Tested'}
-            </span>
-          </div>
         </div>
 
-        {/* Card 2: Phishing Quiz */}
-        <div
-          onClick={() => setCurrentView('quiz')}
-          className="group cursor-pointer p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-lg relative overflow-hidden"
-        >
-          <div className="flex items-start justify-between">
-            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform">
-              <Fish className="w-6 h-6" />
-            </div>
-            <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
-              Simulation Lab
-            </span>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
-              Phishing Awareness
-            </h3>
-            <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-              Smishing, Quishing, CEO wire fraud & credential harvesting exercises.
-            </p>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-            <span className="text-slate-400">Quiz Status:</span>
-            <span className={`font-mono font-bold ${quizCompleted ? 'text-emerald-400' : 'text-slate-400'}`}>
-              {quizCompleted ? `${Math.round(quizScore)}% Certified` : 'Pending'}
-            </span>
-          </div>
-        </div>
-
-        {/* Card 3: URL Threat Scanner */}
-        <div
-          onClick={() => setCurrentView('url')}
-          className="group cursor-pointer p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-lg relative overflow-hidden"
-        >
-          <div className="flex items-start justify-between">
-            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
-              <Link2 className="w-6 h-6" />
-            </div>
-            <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
-              Heuristic Scan
-            </span>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
-              URL Threat Inspector
-            </h3>
-            <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-              Punycode homoglyphs, brand typosquatting & malicious TLD analyzer.
-            </p>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-            <span className="text-slate-400">URLs Analyzed:</span>
-            <span className="font-mono font-bold text-cyan-400">
-              {scannedUrlsCount} Inspected
-            </span>
-          </div>
-        </div>
-
-        {/* Card 4: Hygiene Checklist */}
-        <div
-          onClick={() => setCurrentView('score')}
-          className="group cursor-pointer p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-lg relative overflow-hidden"
-        >
-          <div className="flex items-start justify-between">
-            <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform">
-              <FileCheck className="w-6 h-6" />
-            </div>
-            <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
-              Hygiene Radar
-            </span>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
-              Security Checklist
-            </h3>
-            <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-              MFA enforcement, auto-updates, password vault & encryption controls.
-            </p>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-            <span className="text-slate-400">Completed:</span>
-            <span className="font-mono font-bold text-purple-400">
-              {completedChecklistCount} / 8 Controls
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Grid: Threat Bulletins + Recent Activity Log */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Threat Bulletin Column (2 cols) */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-amber-400" />
-              <h2 className="text-lg font-bold text-white">Live Threat Intelligence Feed</h2>
-            </div>
-            <span className="text-xs text-slate-400">Simulated Global SOC Feeds</span>
-          </div>
-
-          <div className="space-y-3">
-            {threatBulletins.map((bulletin) => (
-              <div
-                key={bulletin.id}
-                className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition-colors"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                    bulletin.level === 'high'
-                      ? 'bg-red-500/10 text-red-400 border-red-500/30'
-                      : bulletin.level === 'medium'
-                      ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                      : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
-                  }`}>
-                    {bulletin.tag}
-                  </span>
-                  <div className="flex items-center gap-1 text-[11px] text-slate-500">
-                    <Clock className="w-3 h-3" />
-                    <span>{bulletin.time}</span>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          {/* Tool Card 1: Password Strength Checker */}
+          <div
+            onClick={() => setCurrentView('passwords')}
+            className="group cursor-pointer p-6 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-850 transition-all duration-300 shadow-xl flex flex-col justify-between space-y-4 relative overflow-hidden"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && setCurrentView('passwords')}
+          >
+            <div className="space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 group-hover:scale-110 transition-transform">
+                  <KeyRound className="w-6 h-6" />
                 </div>
-                <h4 className="text-sm font-semibold text-white mb-1">
-                  {bulletin.title}
-                </h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  {bulletin.summary}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Wispr Flow Voice Prompt Helper Card */}
-          <div className="p-5 rounded-2xl bg-gradient-to-r from-cyan-950/40 via-slate-900 to-blue-950/40 border border-cyan-500/30 flex items-start gap-4 shadow-lg">
-            <div className="p-3 rounded-xl bg-cyan-500/20 text-cyan-300 shrink-0">
-              <Mic className="w-6 h-6 animate-pulse" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                Wispr Flow Voice Navigation Active
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-400/20 text-cyan-300">
-                  Try It!
+                <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                  Tool #1
                 </span>
-              </h4>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Click the microphone button at the bottom-left or say aloud:
-                <em className="text-cyan-300 not-italic font-semibold"> "Check password"</em>,
-                <em className="text-cyan-300 not-italic font-semibold"> "Take phishing quiz"</em>, or
-                <em className="text-cyan-300 not-italic font-semibold"> "What is my score?"</em> to navigate effortlessly.
-              </p>
-            </div>
-          </div>
-        </div>
+              </div>
 
-        {/* Security Activity Log & Hygiene Snapshot (1 col) */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-cyan-400" />
-              <h2 className="text-lg font-bold text-white">Recent Security Activity</h2>
-            </div>
-          </div>
-
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 divide-y divide-slate-800/80">
-            {recentActivities.length > 0 ? (
-              recentActivities.slice(0, 5).map((act, index) => (
-                <div key={index} className="py-3 first:pt-0 last:pb-0 flex items-start gap-3">
-                  <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${
-                    act.type === 'password'
-                      ? 'bg-cyan-500/10 text-cyan-400'
-                      : act.type === 'quiz'
-                      ? 'bg-blue-500/10 text-blue-400'
-                      : 'bg-emerald-500/10 text-emerald-400'
-                  }`}>
-                    {act.type === 'password' ? <KeyRound className="w-4 h-4" /> : act.type === 'quiz' ? <Fish className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-white truncate">{act.title}</p>
-                    <p className="text-[11px] text-slate-400">{act.subtitle}</p>
-                  </div>
-                  <span className="text-[10px] text-slate-500 whitespace-nowrap font-mono">{act.time}</span>
-                </div>
-              ))
-            ) : (
-              <div className="py-8 text-center text-slate-500 text-xs">
-                <CheckCircle2 className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                <p>No activity recorded yet.</p>
-                <p className="text-[11px] text-slate-600 mt-1">
-                  Interact with the modules to build your defense history!
+              <div>
+                <h3 className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
+                  Password Strength Checker
+                </h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Analyze password entropy locally, test against 5 core criteria, simulate GPU brute-force crack time, and generate fortified keys.
                 </p>
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* Quick Knowledge Spotlight */}
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5" />
-                Knowledge Spotlight
+            <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <span className="text-slate-400 font-medium">Status:</span>
+              <span className="font-bold text-cyan-400 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                <span>{passwordScore > 0 ? `Tested (${passwordScore}%)` : 'Ready to Test'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </div>
-            <h4 className="text-xs font-semibold text-white">
-              Why length beats complexity in passwords
-            </h4>
-            <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-              Every added character increases the search space exponentially. A 16-character passphrase of common words takes trillions of times longer to crack than an 8-character mixed password.
-            </p>
-            <button
-              onClick={() => setCurrentView('tips')}
-              className="mt-3 text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1"
-            >
-              <span>Explore 10+ Security Best Practices</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
+          </div>
+
+          {/* Tool Card 2: Phishing Awareness Quiz */}
+          <div
+            onClick={() => setCurrentView('quiz')}
+            className="group cursor-pointer p-6 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-850 transition-all duration-300 shadow-xl flex flex-col justify-between space-y-4 relative overflow-hidden"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && setCurrentView('quiz')}
+          >
+            <div className="space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform">
+                  <Fish className="w-6 h-6" />
+                </div>
+                <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                  Tool #2
+                </span>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
+                  Phishing Awareness Quiz
+                </h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  5 interactive scenario questions covering suspicious links, urgent messages, cloned login portals, malicious attachments, and OTP requests.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <span className="text-slate-400 font-medium">Progress:</span>
+              <span className="font-bold text-blue-400 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                <span>{quizCompleted ? `Completed (${Math.round(quizScore)}%)` : '5 Questions Ready'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+          </div>
+
+          {/* Tool Card 3: URL Safety Checker */}
+          <div
+            onClick={() => setCurrentView('url')}
+            className="group cursor-pointer p-6 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-850 transition-all duration-300 shadow-xl flex flex-col justify-between space-y-4 relative overflow-hidden"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && setCurrentView('url')}
+          >
+            <div className="space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
+                  <Link2 className="w-6 h-6" />
+                </div>
+                <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                  Tool #3
+                </span>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
+                  URL Safety Checker
+                </h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Deep client-side heuristic inspection of unencrypted HTTP, raw IP addresses, high-risk TLDs, and deceptive brand typosquatting.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <span className="text-slate-400 font-medium">Inspections:</span>
+              <span className="font-bold text-emerald-400 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                <span>{scannedUrlsCount} Scanned</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+          </div>
+
+          {/* Tool Card 4: Overall Security Score Card */}
+          <div
+            onClick={() => setCurrentView('score')}
+            className="group cursor-pointer p-6 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border border-purple-500/30 hover:border-purple-500/60 transition-all duration-300 shadow-xl flex flex-col items-center justify-between text-center relative overflow-hidden"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && setCurrentView('score')}
+          >
+            <div className="w-full flex items-center justify-between mb-2">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-bold flex items-center gap-1">
+                <Activity className="w-3.5 h-3.5" />
+                Posture Radar
+              </span>
+              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                Composite
+              </span>
+            </div>
+
+            <ScoreGauge score={overallScore} size={135} strokeWidth={11} showDetails={true} />
+
+            <div className="w-full pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs mt-3">
+              <span className="text-slate-400 font-medium">Hygiene:</span>
+              <span className="font-bold text-purple-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                <span>{completedChecklistCount} / 8 Controls</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* 3. Security Tips Section */}
+      <section className="space-y-6 pt-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-cyan-400" />
+              <span>Cybersecurity Defense Tips</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+              Actionable, practical habits to protect your identity, credentials, and digital footprint.
+            </p>
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+            {tipCategories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedTipCategory(cat.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                  selectedTipCategory === cat.id
+                    ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
+                    : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tips Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {displayedTips.slice(0, 6).map((tip) => {
+            const isBookmarked = !!bookmarkedTips[tip.id];
+            const isMastered = !!masteredTips[tip.id];
+
+            return (
+              <div
+                key={tip.id}
+                className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between space-y-4 shadow-lg group"
+              >
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                      {tip.category}
+                    </span>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => onToggleBookmarkTip?.(tip.id)}
+                        className={`p-1.5 rounded-lg transition-colors ${
+                          isBookmarked ? 'text-cyan-400 bg-slate-800' : 'text-slate-500 hover:text-slate-300'
+                        }`}
+                        title={isBookmarked ? 'Bookmarked' : 'Save Tip'}
+                      >
+                        <Bookmark className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onToggleMasteredTip?.(tip.id)}
+                        className={`p-1.5 rounded-lg transition-colors ${
+                          isMastered ? 'text-emerald-400 bg-slate-800' : 'text-slate-500 hover:text-slate-300'
+                        }`}
+                        title={isMastered ? 'Mastered' : 'Mark as Mastered'}
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
+                    {tip.title}
+                  </h3>
+
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    {tip.summary}
+                  </p>
+
+                  <p className="text-xs text-slate-400 leading-relaxed pt-1">
+                    {tip.details}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    {tip.readTime}
+                  </span>
+                  <span className={`font-semibold ${
+                    tip.impact === 'Critical' ? 'text-red-400' : tip.impact === 'High' ? 'text-amber-400' : 'text-cyan-400'
+                  }`}>
+                    {tip.impact} Impact
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

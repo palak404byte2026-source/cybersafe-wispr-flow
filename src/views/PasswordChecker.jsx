@@ -5,17 +5,16 @@ import {
   EyeOff,
   Copy,
   Check,
-  ShieldAlert,
   ShieldCheck,
-  RefreshCw,
-  Cpu,
-  Clock,
+  ShieldAlert,
+  Lock,
   Sparkles,
-  Sliders,
+  RefreshCw,
   CheckCircle2,
   XCircle,
-  AlertTriangle,
-  Mic
+  Clock,
+  Cpu,
+  Info
 } from 'lucide-react';
 import { evaluatePassword, generateSecurePassword } from '../utils/passwordEvaluator';
 
@@ -28,24 +27,22 @@ export default function PasswordChecker({
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Generator state
+  // Generator options
   const [genLength, setGenLength] = useState(16);
   const [genUpper, setGenUpper] = useState(true);
   const [genLower, setGenLower] = useState(true);
   const [genNumbers, setGenNumbers] = useState(true);
   const [genSymbols, setGenSymbols] = useState(true);
-  const [genAvoidAmbiguous, setGenAvoidAmbiguous] = useState(true);
   const [generatedResult, setGeneratedResult] = useState('');
-  const [isListeningMic, setIsListeningMic] = useState(false);
 
-  // Synchronize when external voice command generates a password
+  // Handle external voice-generated passwords
   useEffect(() => {
     if (externalGeneratedPassword) {
       setPassword(externalGeneratedPassword);
     }
   }, [externalGeneratedPassword]);
 
-  // Run evaluation
+  // Real-time local evaluation
   const result = evaluatePassword(password);
 
   useEffect(() => {
@@ -54,11 +51,11 @@ export default function PasswordChecker({
     }
   }, [password, result.score, result.label]);
 
-  const handleCopy = (textToCopy) => {
-    if (!textToCopy) return;
-    navigator.clipboard.writeText(textToCopy);
+  const handleCopy = (text) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
     setCopied(true);
-    onShowToast({ type: 'success', message: 'Password securely copied to clipboard!' });
+    onShowToast?.({ type: 'success', message: 'Password copied to clipboard!' });
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -69,42 +66,16 @@ export default function PasswordChecker({
       includeLower: genLower,
       includeNumbers: genNumbers,
       includeSymbols: genSymbols,
-      avoidAmbiguous: genAvoidAmbiguous,
     });
     setGeneratedResult(newPass);
   };
 
-  // Voice dictation using Web Speech API for this input
-  const handleMicDictate = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      onShowToast({ type: 'warning', message: 'Speech recognition is not supported in this browser.' });
-      return;
-    }
-
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'en-US';
-      recognition.onstart = () => setIsListeningMic(true);
-      recognition.onresult = (e) => {
-        const spoken = e.results[0][0].transcript.replace(/\s+/g, '-');
-        setPassword(spoken);
-        onShowToast({ type: 'info', message: `Dictated passphrase: "${spoken}"` });
-      };
-      recognition.onerror = () => setIsListeningMic(false);
-      recognition.onend = () => setIsListeningMic(false);
-      recognition.start();
-    } catch (err) {
-      setIsListeningMic(false);
-    }
-  };
-
   const demoPresets = [
-    { label: 'Common Breached', val: 'password123' },
-    { label: 'Short & Simple', val: 'Dragon99' },
-    { label: 'Moderate Mixed', val: 'Summer#2024!' },
-    { label: 'High-Entropy Passphrase', val: 'correct-horse-battery-staple' },
-    { label: 'Fortified Alpha-Numeric', val: 'Cyb3r#Saf3&Wispr!2026' }
+    { label: 'Very Weak', val: '123456' },
+    { label: 'Weak', val: 'Summer2024' },
+    { label: 'Fair', val: 'Falcon#98' },
+    { label: 'Strong', val: 'Tr0ub4dor&39' },
+    { label: 'Very Strong', val: 'K9#xP2$vL9@mQ4!z' }
   ];
 
   return (
@@ -114,55 +85,63 @@ export default function PasswordChecker({
         <div>
           <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-1">
             <KeyRound className="w-4 h-4" />
-            <span>Entropy & Defense Engine</span>
+            <span>Cryptographic Entropy & Defense</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
-            Password Strength Analyzer & Generator
+            Password Strength Checker
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            Evaluate mathematical keyspace entropy, simulate GPU cluster brute-force resistance, and check breach exposure.
+            Instant client-side entropy evaluation against dictionary brute-forcing, pattern repetition, and breach leaks.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 font-mono">
-            Client-Side Only • Zero Logs
+        <div>
+          <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 font-medium">
+            <Lock className="w-3.5 h-3.5" />
+            <span>100% Client-Side Evaluation</span>
           </span>
+        </div>
+      </div>
+
+      {/* Mandatory Educational Privacy Message */}
+      <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 text-cyan-200 flex items-start gap-3.5 shadow-lg">
+        <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 shrink-0 mt-0.5">
+          <Info className="w-5 h-5" />
+        </div>
+        <div className="text-xs sm:text-sm space-y-1">
+          <h4 className="font-bold text-white flex items-center gap-2">
+            Educational Privacy Guarantee
+          </h4>
+          <p className="text-slate-300 leading-relaxed">
+            All password analysis runs <strong>100% locally in your browser memory</strong> using client-side JavaScript.
+            Your password is <strong>never transmitted over any network, never saved, and never stored</strong> in any database, backend server, or local log.
+          </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Password Input & Live Analysis (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Input Box Card */}
-          <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
+          <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-5">
             <div className="flex items-center justify-between">
-              <label htmlFor="password-input" className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                Enter Password or Passphrase to Test
+              <label htmlFor="password-field" className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                Test Your Password
               </label>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleMicDictate}
-                  className={`p-1.5 rounded-lg border text-xs flex items-center gap-1 transition-colors ${
-                    isListeningMic
-                      ? 'bg-red-500/20 text-red-300 border-red-500 animate-pulse'
-                      : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-cyan-400'
-                  }`}
-                  title="Dictate passphrase via Wispr Voice"
-                >
-                  <Mic className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{isListeningMic ? 'Listening...' : 'Voice Dictate'}</span>
-                </button>
-              </div>
+              <span className="text-xs text-slate-400 font-mono">
+                {password.length} characters
+              </span>
             </div>
 
+            {/* Input with Show/Hide Toggle */}
             <div className="relative">
               <input
-                id="password-input"
+                id="password-field"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Type any password (e.g. Cyb3r$afe#2026)..."
+                placeholder="Type a password to evaluate (e.g., K9#xP2$vL9@mQ4)..."
                 className="w-full px-4 py-3.5 pr-24 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 font-mono text-sm sm:text-base outline-none transition-all"
+                autoComplete="off"
+                spellCheck="false"
               />
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                 {password && (
@@ -175,38 +154,22 @@ export default function PasswordChecker({
                   </button>
                 )}
                 <button
+                  type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                   title={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-4 h-4 text-cyan-400" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Quick Demo Presets */}
-            <div className="pt-1">
-              <span className="text-[11px] text-slate-400 block mb-2 font-medium">
-                Try quick preset test cases:
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {demoPresets.map((preset, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setPassword(preset.val)}
-                    className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-[11px] text-slate-300 hover:text-white transition-all font-mono"
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Visual Dynamic Strength Bar */}
-            <div className="space-y-1.5 pt-2">
+            {/* Strength Level & Visual Strength Meter */}
+            <div className="space-y-2 pt-1">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">Strength Rating:</span>
-                <span className={`font-bold uppercase tracking-wider ${
+                <span className="text-slate-400 font-medium">Strength Level:</span>
+                <span className={`font-bold uppercase tracking-wider text-sm ${
                   result.color === 'emerald' ? 'text-emerald-400' :
                   result.color === 'cyan' ? 'text-cyan-400' :
                   result.color === 'amber' ? 'text-amber-400' :
@@ -215,87 +178,105 @@ export default function PasswordChecker({
                   {result.label} ({result.score}%)
                 </span>
               </div>
-              <div className="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden p-0.5">
+
+              {/* Visual meter bar with multi-stage transitions */}
+              <div className="w-full h-3 rounded-full bg-slate-800/90 overflow-hidden p-0.5 border border-slate-700/50">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ease-out ${
-                    result.color === 'emerald' ? 'bg-gradient-to-r from-cyan-500 to-emerald-400 glow-emerald' :
-                    result.color === 'cyan' ? 'bg-gradient-to-r from-blue-500 to-cyan-400 glow-cyan' :
+                    result.color === 'emerald' ? 'bg-gradient-to-r from-cyan-500 to-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.5)]' :
+                    result.color === 'cyan' ? 'bg-gradient-to-r from-blue-500 to-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.5)]' :
                     result.color === 'amber' ? 'bg-amber-400' :
                     result.color === 'orange' ? 'bg-orange-500' : 'bg-red-500'
                   }`}
-                  style={{ width: `${result.score}%` }}
+                  style={{ width: `${password.length > 0 ? result.score : 0}%` }}
                 />
+              </div>
+
+              {/* 5 Levels Legend Indicators */}
+              <div className="grid grid-cols-5 gap-1 pt-1 text-[10px] text-center font-mono text-slate-500">
+                <span className={result.label.includes('Very Weak') ? 'text-red-400 font-bold' : ''}>Very Weak</span>
+                <span className={result.label === 'Weak' ? 'text-orange-400 font-bold' : ''}>Weak</span>
+                <span className={result.label === 'Fair' ? 'text-amber-400 font-bold' : ''}>Fair</span>
+                <span className={result.label === 'Strong' ? 'text-cyan-400 font-bold' : ''}>Strong</span>
+                <span className={result.label === 'Very Strong' ? 'text-emerald-400 font-bold' : ''}>Very Strong</span>
               </div>
             </div>
 
-            {/* Breached alert banner if triggered */}
+            {/* Quick Demo Preset Buttons */}
+            <div className="pt-2 border-t border-slate-800">
+              <span className="text-[11px] text-slate-400 block mb-2 font-medium">
+                Try quick preset passwords:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {demoPresets.map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setPassword(preset.val)}
+                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 text-[11px] text-slate-300 hover:text-white transition-all font-mono"
+                  >
+                    {preset.label}: <span className="text-cyan-300">{preset.val}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Breached alert if triggered */}
             {result.isBreached && (
               <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/40 text-red-300 flex items-start gap-3">
                 <ShieldAlert className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
                 <div className="text-xs space-y-1">
-                  <p className="font-bold text-red-200">CRITICAL VULNERABILITY DETECTED</p>
+                  <p className="font-bold text-red-200">KNOWN COMPROMISED PASSWORD</p>
                   <p>
-                    This password is present in global breach lists (e.g. RockYou, HaveIBeenPwned). Automated credential stuffing attacks test this within the first 100 milliseconds.
+                    This exact password exists in public breach dumps (e.g. RockYou, HaveIBeenPwned). Attack bots test this automatically within milliseconds.
                   </p>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Mathematical Entropy & Crack Time Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
-              <div className="flex items-center gap-2 text-cyan-400 text-xs font-semibold">
-                <Cpu className="w-4 h-4" />
-                <span>Information Entropy</span>
-              </div>
-              <div className="text-2xl font-extrabold font-mono text-white">
-                {result.entropy} <span className="text-sm font-normal text-slate-400">bits</span>
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Calculated keyspace based on {result.charsetSize} active character pool and {password.length} characters.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
-              <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold">
-                <Clock className="w-4 h-4" />
-                <span>Estimated Time to Crack</span>
-              </div>
-              <div className="text-lg font-bold font-mono text-white truncate" title={result.crackTime}>
-                {result.crackTime}
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Assuming 10 billion guesses/sec on modern clustered GPU hash-cracking arrays.
-              </p>
-            </div>
-          </div>
-
-          {/* Criteria Checklist */}
-          <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+          {/* Individual Requirement Indicators */}
+          <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4 shadow-xl">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Security Criteria Checklist
+              Individual Requirement Indicators (5 Core Criteria)
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-              <CheckItem label="At least 8 characters" passed={result.checks.length8} />
-              <CheckItem label="12+ characters (Recommended)" passed={result.checks.length12} />
-              <CheckItem label="16+ characters (Fortified)" passed={result.checks.length16} />
-              <CheckItem label="Lowercase letters (a-z)" passed={result.checks.hasLower} />
-              <CheckItem label="Uppercase letters (A-Z)" passed={result.checks.hasUpper} />
-              <CheckItem label="Numeric digits (0-9)" passed={result.checks.hasNumber} />
-              <CheckItem label="Special symbols (!@#$%^&*)" passed={result.checks.hasSymbol} />
-              <CheckItem label="No sequential patterns (12345, qwerty)" passed={result.checks.noSequences} />
-              <CheckItem label="No repetitive identical characters" passed={result.checks.noRepeats} />
+            <div className="space-y-2.5">
+              {result.requirements.map((req) => (
+                <div
+                  key={req.id}
+                  className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
+                    req.met
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 text-xs sm:text-sm font-medium">
+                    {req.met ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-slate-600 shrink-0" />
+                    )}
+                    <span>{req.label}</span>
+                  </div>
+                  <span className={`text-[11px] font-mono uppercase px-2 py-0.5 rounded font-bold ${
+                    req.met ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'
+                  }`}>
+                    {req.met ? 'Passed' : 'Missing'}
+                  </span>
+                </div>
+              ))}
             </div>
 
-            {/* Actionable Feedback list */}
+            {/* Recommendations List */}
             <div className="pt-3 border-t border-slate-800">
-              <h4 className="text-xs font-semibold text-slate-300 mb-2">Remediation Guidance:</h4>
+              <h4 className="text-xs font-semibold text-slate-300 mb-2">
+                Recommendations for Improvement:
+              </h4>
               <ul className="space-y-1.5 text-xs text-slate-400">
-                {result.feedback.map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="text-cyan-400 mt-0.5">•</span>
-                    <span>{item}</span>
+                {result.recommendations.map((rec, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-cyan-400 font-bold shrink-0 mt-0.5">•</span>
+                    <span>{rec}</span>
                   </li>
                 ))}
               </ul>
@@ -303,27 +284,53 @@ export default function PasswordChecker({
           </div>
         </div>
 
-        {/* Right Column: Fortified Password Generator (5 cols) */}
+        {/* Right Column: Brute-Force Simulation & Fortified Generator (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
+          {/* Crack Time & Keyspace Entropy */}
+          <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4 shadow-xl">
+            <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider">
+              <Cpu className="w-4 h-4" />
+              <span>Brute-Force GPU Simulation</span>
+            </div>
+
+            <div className="space-y-3">
+              <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1">
+                <span className="text-[11px] text-slate-400 font-medium">Estimated Crack Time:</span>
+                <div className="text-lg font-bold font-mono text-cyan-300">
+                  {result.crackTime}
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Calculated against 10 billion guesses/sec on clustered RTX 4090 GPU rigs.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1">
+                <span className="text-[11px] text-slate-400 font-medium">Information Entropy:</span>
+                <div className="text-lg font-bold font-mono text-white">
+                  {result.entropy} <span className="text-xs text-slate-400 font-normal">bits of entropy</span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Based on a keyspace pool of {result.charsetSize} active character variations.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Secure Password Generator */}
           <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider">
                 <Sparkles className="w-4 h-4" />
-                <span>Fortified Generator</span>
+                <span>Secure Password Generator</span>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
-                Cryptographic CSPRNG
+                CSPRNG
               </span>
             </div>
 
-            <h3 className="text-lg font-bold text-white">
-              Generate High-Entropy Password
-            </h3>
-
-            {/* Length Slider */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-300 font-medium">Password Length</span>
+                <span className="text-slate-300 font-medium">Length</span>
                 <span className="font-mono font-bold text-cyan-400 text-sm">{genLength} chars</span>
               </div>
               <input
@@ -334,26 +341,47 @@ export default function PasswordChecker({
                 onChange={(e) => setGenLength(parseInt(e.target.value))}
                 className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
               />
-              <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                <span>8 (Min)</span>
-                <span>16 (Recommended)</span>
-                <span>32 (Max)</span>
-              </div>
             </div>
 
-            {/* Character Toggles */}
-            <div className="space-y-2.5 pt-2 border-t border-slate-800">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">
-                Character Composition
-              </span>
-              <ToggleOption label="Uppercase Letters (A-Z)" checked={genUpper} onChange={setGenUpper} />
-              <ToggleOption label="Lowercase Letters (a-z)" checked={genLower} onChange={setGenLower} />
-              <ToggleOption label="Numeric Digits (0-9)" checked={genNumbers} onChange={setGenNumbers} />
-              <ToggleOption label="Symbols (!@#$%^&*)" checked={genSymbols} onChange={setGenSymbols} />
-              <ToggleOption label="Avoid Ambiguous (I, l, 1, O, 0)" checked={genAvoidAmbiguous} onChange={setGenAvoidAmbiguous} />
+            <div className="space-y-2 pt-2 border-t border-slate-800 text-xs">
+              <label className="flex items-center justify-between text-slate-300 cursor-pointer">
+                <span>Uppercase (A-Z)</span>
+                <input
+                  type="checkbox"
+                  checked={genUpper}
+                  onChange={(e) => setGenUpper(e.target.checked)}
+                  className="rounded bg-slate-800 text-cyan-500 border-slate-700"
+                />
+              </label>
+              <label className="flex items-center justify-between text-slate-300 cursor-pointer">
+                <span>Lowercase (a-z)</span>
+                <input
+                  type="checkbox"
+                  checked={genLower}
+                  onChange={(e) => setGenLower(e.target.checked)}
+                  className="rounded bg-slate-800 text-cyan-500 border-slate-700"
+                />
+              </label>
+              <label className="flex items-center justify-between text-slate-300 cursor-pointer">
+                <span>Numbers (0-9)</span>
+                <input
+                  type="checkbox"
+                  checked={genNumbers}
+                  onChange={(e) => setGenNumbers(e.target.checked)}
+                  className="rounded bg-slate-800 text-cyan-500 border-slate-700"
+                />
+              </label>
+              <label className="flex items-center justify-between text-slate-300 cursor-pointer">
+                <span>Symbols (!@#$%)</span>
+                <input
+                  type="checkbox"
+                  checked={genSymbols}
+                  onChange={(e) => setGenSymbols(e.target.checked)}
+                  className="rounded bg-slate-800 text-cyan-500 border-slate-700"
+                />
+              </label>
             </div>
 
-            {/* Generate Action Button */}
             <button
               onClick={handleGenerate}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all hover:scale-[1.02]"
@@ -362,78 +390,35 @@ export default function PasswordChecker({
               <span>Generate Fortified Password</span>
             </button>
 
-            {/* Generated Password Output Box */}
             {generatedResult && (
               <div className="p-4 rounded-xl bg-slate-950 border border-cyan-500/40 space-y-3 animate-fade-in">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400 uppercase font-mono">Generated Result:</span>
+                <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                  <span>Generated Result:</span>
                   <button
                     onClick={() => handleCopy(generatedResult)}
-                    className="flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 font-semibold"
+                    className="text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1"
                   >
                     <Copy className="w-3.5 h-3.5" />
                     <span>Copy</span>
                   </button>
                 </div>
-                <div className="font-mono text-sm sm:text-base text-cyan-300 break-all select-all p-2 rounded bg-slate-900 border border-slate-800">
+                <div className="font-mono text-sm text-cyan-300 break-all p-2 rounded bg-slate-900 border border-slate-800 select-all">
                   {generatedResult}
                 </div>
                 <button
                   onClick={() => {
                     setPassword(generatedResult);
-                    onShowToast({ type: 'info', message: 'Loaded into password strength analyzer!' });
+                    onShowToast?.({ type: 'info', message: 'Loaded into Password Strength Checker!' });
                   }}
                   className="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white transition-colors"
                 >
-                  Test in Strength Analyzer Above
+                  Test in Strength Checker
                 </button>
               </div>
             )}
           </div>
-
-          {/* Quick Best Practice Card */}
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 text-xs space-y-2">
-            <h4 className="font-bold text-white flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              NIST 800-63B Guidelines
-            </h4>
-            <p className="text-slate-400 leading-relaxed">
-              The National Institute of Standards and Technology advises prioritizing passphrase length over arbitrary character replacement rules, and discarding mandatory 90-day password expiration policies which encourage weaker passwords.
-            </p>
-          </div>
         </div>
       </div>
     </div>
-  );
-}
-
-function CheckItem({ label, passed }) {
-  return (
-    <div className={`flex items-center gap-2 p-2 rounded-lg border transition-colors ${
-      passed
-        ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-300'
-        : 'bg-slate-950/40 border-slate-800 text-slate-500'
-    }`}>
-      {passed ? (
-        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-      ) : (
-        <XCircle className="w-4 h-4 text-slate-600 shrink-0" />
-      )}
-      <span className="truncate">{label}</span>
-    </div>
-  );
-}
-
-function ToggleOption({ label, checked, onChange }) {
-  return (
-    <label className="flex items-center justify-between text-xs text-slate-300 cursor-pointer select-none">
-      <span>{label}</span>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="w-4 h-4 rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-cyan-400 cursor-pointer"
-      />
-    </label>
   );
 }

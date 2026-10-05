@@ -5,24 +5,21 @@ import {
   Fish,
   Link2,
   Activity,
-  BookOpen,
   Menu,
   X,
-  Mic,
-  Sparkles,
-  Award
+  Sparkles
 } from 'lucide-react';
 
 export default function Navbar({ currentView, setCurrentView, overallScore = 0 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Exact 5 navigation items requested by the user
   const navItems = [
-    { id: 'dashboard', label: 'Command Center', icon: ShieldCheck },
-    { id: 'passwords', label: 'Password Guard', icon: KeyRound },
-    { id: 'quiz', label: 'Phishing Lab', icon: Fish },
-    { id: 'url', label: 'URL Scanner', icon: Link2 },
-    { id: 'score', label: 'Security Health', icon: Activity },
-    { id: 'tips', label: 'Knowledge Hub', icon: BookOpen },
+    { id: 'dashboard', label: 'Dashboard', icon: ShieldCheck },
+    { id: 'passwords', label: 'Password Checker', icon: KeyRound },
+    { id: 'quiz', label: 'Phishing Quiz', icon: Fish },
+    { id: 'url', label: 'URL Safety', icon: Link2 },
+    { id: 'score', label: 'Security Score', icon: Activity },
   ];
 
   let scoreColorClass = 'text-red-400 border-red-500/30 bg-red-500/10';
@@ -31,10 +28,10 @@ export default function Navbar({ currentView, setCurrentView, overallScore = 0 }
   else if (overallScore >= 40) scoreColorClass = 'text-amber-400 border-amber-500/30 bg-amber-500/10';
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 w-full border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo & Wispr Flow badge */}
+          {/* Brand Name & Logo */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
@@ -50,21 +47,21 @@ export default function Navbar({ currentView, setCurrentView, overallScore = 0 }
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-black tracking-tight text-white group-hover:text-cyan-300 transition-colors">
+                  <span className="text-xl font-black tracking-tight text-white group-hover:text-cyan-300 transition-colors">
                     Cyber<span className="text-cyan-400">Safe</span>
                   </span>
                 </div>
-                <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-                  <span>Wispr Flow Edition</span>
-                  <span className="w-1 h-1 rounded-full bg-cyan-400"></span>
-                  <span className="text-cyan-400">Voice-Ready</span>
+                <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
+                  <span className="text-cyan-400">Awareness Platform</span>
+                  <span className="w-1 h-1 rounded-full bg-slate-600"></span>
+                  <span>Wispr Flow</span>
                 </div>
               </div>
             </button>
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentView === item.id;
@@ -72,7 +69,7 @@ export default function Navbar({ currentView, setCurrentView, overallScore = 0 }
                 <button
                   key={item.id}
                   onClick={() => setCurrentView(item.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ${
                     isActive
                       ? 'bg-slate-800 text-cyan-300 border border-slate-700/80 shadow-inner'
                       : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/60'
@@ -85,20 +82,20 @@ export default function Navbar({ currentView, setCurrentView, overallScore = 0 }
             })}
           </nav>
 
-          {/* Right Header items: Security Score Chip & Mobile button */}
+          {/* Right Header items: Security Score Chip & Mobile toggle */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setCurrentView('score')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition-all hover:scale-105 ${scoreColorClass}`}
-              title="View Overall Security Score breakdown"
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-bold transition-all hover:scale-105 ${scoreColorClass}`}
+              title="View Security Score breakdown"
             >
               <Activity className="w-3.5 h-3.5" />
-              <span>Score:</span>
+              <span className="hidden sm:inline">Score:</span>
               <span className="font-mono text-sm">{Math.round(overallScore)}%</span>
             </button>
 
             {/* Mobile Hamburger toggle */}
-            <div className="flex lg:hidden">
+            <div className="flex md:hidden">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
@@ -113,7 +110,7 @@ export default function Navbar({ currentView, setCurrentView, overallScore = 0 }
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-slate-800 bg-slate-950/95 backdrop-blur-xl px-4 pt-2 pb-6 space-y-2 animate-fade-in">
+        <div className="md:hidden border-b border-slate-800 bg-slate-950/95 backdrop-blur-xl px-4 pt-2 pb-6 space-y-2 animate-fade-in">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentView === item.id;

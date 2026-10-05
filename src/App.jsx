@@ -176,6 +176,10 @@ export default function App() {
             scannedUrlsCount={scannedUrls.length}
             completedChecklistCount={completedChecklistCount}
             recentActivities={recentActivities}
+            masteredTips={masteredTips}
+            bookmarkedTips={bookmarkedTips}
+            onToggleMasteredTip={handleToggleMasteredTip}
+            onToggleBookmarkTip={handleToggleBookmarkTip}
           />
         )}
 
