@@ -1,0 +1,22 @@
+# Render Blueprint for CyberSafe Static Site Deployment
+services:
+  - type: web
+    name: cybersafe-wispr-flow
+    runtime: static
+    buildCommand: npm run build
+    staticPublishPath: ./dist
+    pullRequestPreviewsEnabled: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
