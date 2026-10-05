@@ -1,145 +1,183 @@
-# 🛡️ CyberSafe | Wispr Flow Voice-Driven Development Challenge
+# 🛡️ CyberSafe — Cybersecurity Awareness Dashboard
 
-> **CyberSafe** is an advanced, reactive cybersecurity awareness platform engineered for the **Wispr Flow Voice-Driven Development Challenge**. It empowers users with real-time defense intelligence, password entropy calculations, realistic phishing simulations, client-side URL threat inspection, and hands-free voice navigation.
+> **CyberSafe** is an interactive, privacy-first cybersecurity awareness platform engineered for the **Wispr Flow Voice-Driven Development Challenge**. It empowers users to elevate their personal security posture through real-time password entropy analysis, realistic phishing simulations, client-side URL safety inspection, a unified security health scoreboard, and hands-free voice navigation.
 
-![CyberSafe Preview](https://img.shields.io/badge/Security-Fortified-06b6d4?style=for-the-badge&logo=shield)
-![Tech Stack](https://img.shields.io/badge/Vite-React%2019-3b82f6?style=for-the-badge&logo=react)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06b6d4?style=for-the-badge&logo=tailwindcss)
-![Architecture](https://img.shields.io/badge/Architecture-100%25_Frontend_Only-10b981?style=for-the-badge)
-![Deployment](https://img.shields.io/badge/Render-Static_Site_Ready-46e3b7?style=for-the-badge&logo=render)
+[![Security](https://img.shields.io/badge/Security-Fortified-06b6d4?style=for-the-badge&logo=shield)](https://github.com/palak404byte2026-source/CyberSafe-Wispr-Flow)
+[![Vite](https://img.shields.io/badge/Vite-v8.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![React](https://img.shields.io/badge/React-v19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Architecture](https://img.shields.io/badge/Architecture-100%25_Frontend_Only-10b981?style=for-the-badge)](https://github.com/palak404byte2026-source/CyberSafe-Wispr-Flow)
+[![Render](https://img.shields.io/badge/Render-Static_Site_Ready-46e3b7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/)
+
+---
+
+## 🔗 Live Demo & Video Presentation
+
+| Resource | Link |
+| :--- | :--- |
+| 🌐 **Live Web Application (Render)** | [https://cybersafe-wispr-flow.onrender.com](https://cybersafe-wispr-flow.onrender.com) *(Configure your Render deployment link here)* |
+| 🎥 **Wispr Flow Voice Demo Video** | [https://youtu.be/your-demo-video-link](https://youtu.be/your-demo-video-link) *(Add your demonstration video URL here)* |
+
+---
+
+## 🎙️ Voice-Driven Development with Wispr Flow
+
+CyberSafe was designed and built embracing **voice-driven development** inspired by **Wispr Flow**. The application features an integrated, hands-free voice controller that lets users navigate modules, launch audits, and generate secure keys via natural speech commands.
+
+### Supported Voice Commands:
+- 🗣️ **"Check password"** / **"Test password strength"** $\rightarrow$ Opens the Password Strength Checker
+- 🗣️ **"Take phishing quiz"** / **"Test me"** $\rightarrow$ Launches the Phishing Awareness Quiz
+- 🗣️ **"Scan URL"** / **"Check link"** $\rightarrow$ Opens the URL Safety & Threat Evaluator
+- 🗣️ **"What is my score?"** $\rightarrow$ Navigates to the Overall Security Scorecard with spoken speech feedback
+- 🗣️ **"Show security tips"** $\rightarrow$ Opens the Cybersecurity Knowledge Hub & Threat Glossary
+- 🗣️ **"Generate password"** $\rightarrow$ Generates a high-entropy CSPRNG password automatically
+- 🗣️ **"Go to dashboard"** $\rightarrow$ Returns to the central Security Command Center
+
+> **Microphone Fallback**: If browser microphone permissions are restricted or speech recognition is unsupported, an **Interactive 1-Click Voice Command Simulator** provides full hands-free simulation.
 
 ---
 
 ## 🌟 Key Features
 
-### 1. 📊 Security Command Center (Dashboard)
-- **Dynamic Security Posture Gauge**: Animated SVG radial gauge displaying real-time composite security score (0–100) and defense tier.
-- **4 Core Defense Pillar KPI Cards**: Instant status indicators for Password Defense, Phishing Lab, URL Threat Scanner, and Hygiene Radar.
-- **Live Simulated Threat Feed**: Real-time advisories on Quishing, MFA Fatigue, and zero-day attack trends.
-- **Persistent Activity Timeline**: Tracks and logs all user scans and assessments locally.
+### 1. 🛡️ Security Command Center (Dashboard)
+- **High-Impact Overview**: Centralized dashboard displaying the composite security score, active alerts, and immediate navigation to all audit tools.
+- **Interactive Action Cards**: Direct routing buttons (`Check Password`, `Take Quiz`, `Check URL`, `View Score`) with hover micro-animations.
+- **Curated Security Tips**: Instant preview of beginner-friendly defense tips directly from the dashboard.
 
-### 2. 🔑 Password Strength Analyzer & CSPRNG Generator
-- **Information Entropy Calculation**: Calculates exact bit entropy ($E = L \times \log_2(R)$) and estimated crack times against modern GPU clusters.
-- **Breach Database Check**: Real-time matching against a dictionary of the most frequently compromised passwords with NIST 800-63B guidelines.
-- **Comprehensive Criteria Engine**: Evaluates length, character diversity, repetitive sequences, and common keyboard patterns.
-- **Fortified Generator**: Customizable length (8–32 chars), character pools, and ambiguous character avoidance with one-click clipboard copying.
-- **Voice Dictation**: Dictate secure passphrases directly into the evaluator.
+### 2. 🔑 Password Strength Checker & CSPRNG Generator
+- **5-Tier Strength Classification**: Rates passwords across *Very Weak*, *Weak*, *Fair*, *Strong*, and *Very Strong*.
+- **5 Core Criteria Breakdown**: Real-time validation of length ($\ge 12$ chars), uppercase, lowercase, numbers, and special symbols.
+- **Cryptographic Entropy & GPU Simulation**: Computes Shannon keyspace entropy in bits and estimates crack times against 10 billion guesses/sec clustered RTX 4090 GPU rigs.
+- **Compromised Password Alerts**: Real-time detection against common breach wordlists (e.g. `RockYou`, `HaveIBeenPwned`).
+- **Fortified Generator**: Cryptographically Secure Pseudorandom Number Generator (CSPRNG) with customizable length (8–32 chars) and character set toggles.
+- **Quick Preset Testing**: One-click preset demo passwords to visualize each tier.
 
-### 3. 🎣 Phishing & Social Engineering Lab
-- **Realistic Scenario Simulations**:
-  - Business Email Compromise (CEO wire & gift card fraud)
-  - Smishing (SMS postal redelivery phishing)
-  - Quishing (Breakroom QR code SSO harvest)
-  - MFA Fatigue Attack (Authenticator push prompt flooding)
-  - Double Extension Executable (`.pdf.exe` masquerade)
-  - Cross-Platform Credential Harvesting (Google Doc requiring Microsoft SSO)
-- **Cognitive Red Flag Highlighting**: Explains exact social engineering triggers.
-- **Printable Certificate of Cybersecurity Awareness**: Generates an official, customizable certificate with verification hash upon passing.
+### 3. 🎣 Phishing Awareness Quiz
+- **5 Realistic Scenarios**: Tests discernment against suspicious hyperlinks, urgent threats, fake login portals, malicious attachments, and OTP interception attacks.
+- **Progress Tracking**: One question at a time with a dynamic progress bar and scenario indicator.
+- **Anti-Bypass Validation**: Users must select an answer before proceeding, preventing invalid progress state.
+- **Educational Feedback**: Immediate visual explanations for both safe and deceptive choices.
+- **Comprehensive Score Review**: Calculates total score out of 5 and percentage, with full answer breakdowns and a one-click retake button.
 
-### 4. 🔗 URL & Phishing Threat Inspector
-- **Heuristic Threat Engine**:
-  - Unencrypted HTTP transport detection
-  - Raw IP address hostname identification
-  - High-risk TLD analysis (`.xyz`, `.top`, `.tk`, `.zip`, `.mov`, `.cam`, etc.)
-  - Punycode & IDN Homoglyph attack detection (Cyrillic character substitution)
-  - Brand typosquatting heuristics (PayPal, Google, Apple, Microsoft, Amazon, Chase)
-  - Subdomain depth stacking and credential harvesting lures
-- **Threat Index (0–100%)**: Instant verdict classification (Safe, Low Risk, Suspicious, Dangerous Phishing).
-- **1-Click Attack Presets**: Test real-world scenarios instantly.
+### 4. 🌐 Educational URL Safety Checker
+- **6 Heuristic Checks**:
+  1. **HTTPS Protocol Check**: Detects insecure unencrypted HTTP connections.
+  2. **IP Hostname Check**: Identifies direct IPv4/IPv6 host addresses bypassing DNS.
+  3. **Suspicious Keyword Filter**: Flags credential and financial harvesting keywords (`login`, `verify`, `paypal`, `secure`, `update`, etc.).
+  4. **Subdomain Stacking**: Catches excessive subdomain nesting ($>3$ levels).
+  5. **Malformed Syntax Check**: Validates compliance with RFC 3986 URL specifications.
+  6. **Deceptive Characters & Homoglyphs**: Detects Cyrillic character substitutions and Punycode (`xn--`).
+- **Risk Categorization**: Rates links as *Low Risk*, *Suspicious*, or *High Risk*.
+- **Preset Demonstration Links**: One-click buttons to evaluate safe vs. malicious link structures instantly.
 
-### 5. 🩺 Security Health Score & Hygiene Radar
-- **Mathematical Composite Health Score**:
-  - Password Defense: Up to 25 pts
-  - Phishing Simulation: Up to 25 pts
-  - URL Scanner Audits: Up to 20 pts
-  - Daily Hygiene Checklist: Up to 30 pts
-- **Interactive 8-Point Defense Checklist**: Immediate live score recalculation upon toggling controls.
-- **Audit Report Export**: One-click JSON download for compliance or personal review.
+### 5. 📊 Overall Security Scoreboard
+- **Radial SVG Score Gauge**: Responsive circular progress meter with ARIA accessibility roles and dynamic colors.
+- **Transparent Scoring Formula (0–100 Scale)**:
+  - **Password Strength**: Up to 35 points
+  - **Phishing Quiz**: Up to 35 points
+  - **URL Scanner Audits**: Up to 30 points (10 points per scan, max 30)
+- **4 Defense Posture Tiers**: Categorized into *Needs Improvement* ($<50$), *Fair* ($50–69$), *Good* ($70–84$), and *Intelligent/Excellent* ($85–100$).
+- **Direct Action Checklist**: One-click jump links to help users improve each facet of their score.
 
-### 6. 📚 Cyber Defense Knowledge Hub & Threat Glossary
-- **Actionable Best Practices**: Curated security advice across Passwords, Phishing, Browsing, Endpoint, and Network domains.
-- **Tip of the Day**: Interactive spotlight with bookmarking and "Mark as Mastered" tracker.
-- **Threat Glossary**: Quick reference definitions for Ransomware, MitM, Zero-Day, Quishing, Smishing, and more.
-
-### 7. 🎙️ Wispr Flow Voice-Driven Controller
-- **Hands-Free Navigation**: Built using the Web Speech API with automatic speech recognition and speech synthesis voice responses.
-- **Recognized Voice Commands**:
-  - *"Check password"* / *"Test password strength"*
-  - *"Take phishing quiz"* / *"Start quiz"*
-  - *"Scan URL"* / *"Check link"*
-  - *"What is my security score?"*
-  - *"Show security tips"* / *"Knowledge hub"*
-  - *"Generate password"*
-  - *"Go to dashboard"*
-- **Visual Waveform & Fallback Simulator**: Features an animated audio waveform during listening and 1-click simulated command buttons for environments without microphone permissions.
+### 6. 💡 Cybersecurity Knowledge Hub & Threat Glossary
+- **6 Beginner-Friendly Best Practices**:
+  1. Strong Passwords & Passphrases
+  2. Multi-Factor Authentication (MFA)
+  3. Recognizing Phishing Attacks
+  4. Software & System Updates
+  5. Safe Browsing & Public Wi-Fi
+  6. Protecting Sensitive Personal Data
+- **Interactive Progress**: Mark tips as mastered or bookmark them for quick reference (saved in `localStorage`).
+- **Threat Glossary**: Clear, accessible definitions for Ransomware, Man-in-the-Middle (MitM), Social Engineering, and Zero-Day vulnerabilities.
 
 ---
 
-## 🔒 Privacy & Architecture
+## 🔒 Security & Privacy Commitments
 
-- **100% Frontend-Only**: No backend server, no database, no third-party API dependencies.
-- **Zero Data Leakage**: All passwords, URLs, and quiz responses are evaluated in browser memory and persisted only to client `localStorage`.
-- **Fast & Lightweight**: Built with Vite and Tailwind CSS v4, achieving sub-second production builds (< 850ms).
+### 🛡️ Local-Only Password Evaluation
+> **Important Privacy Notice**: The CyberSafe Password Strength Checker operates **entirely in your local browser memory**. Passwords entered into CyberSafe are **never transmitted over any network, never sent to external servers, and never stored in cookies or local storage**. Only the non-sensitive numerical score and rating are retained locally to calculate your overall security score.
+
+### ⚠️ Educational Demonstration Disclaimer
+> **URL Checker Disclaimer**: The URL Safety Checker is designed strictly as an **educational demonstration** to teach users how to spot common red flags in web addresses. It operates solely through client-side heuristic pattern matching and **does not replace professional threat intelligence feeds, enterprise firewalls, antivirus software, or secure web gateways**.
+
+---
+
+## 🛠️ Technology Stack
+
+- **Framework**: [React 19](https://react.dev/)
+- **Build Tooling**: [Vite 8](https://vitejs.dev/) with `@tailwindcss/vite`
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) (Dark cybersecurity theme, responsive grid layouts, custom glow effects)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Voice Engine**: Web Speech API (`SpeechRecognition` & `SpeechSynthesisUtterance`)
+- **Deployment**: [Render](https://render.com/) Static Site (`render.yaml` blueprint included)
 
 ---
 
 ## 🚀 Getting Started Locally
 
 ### Prerequisites
-- Node.js (v18+)
-- npm (v9+)
+- [Node.js](https://nodejs.org/) (v18.0.0 or higher recommended)
+- `npm` (v9.0.0 or higher)
 
-### Installation
+### 1. Clone the Repository
 ```bash
-# Clone the repository
-git clone <repo-url>
-cd cybersafe-wispr-flow
+git clone https://github.com/palak404byte2026-source/CyberSafe-Wispr-Flow.git
+cd CyberSafe-Wispr-Flow
+```
 
-# Install dependencies
+### 2. Install Dependencies
+```bash
 npm install
+```
 
-# Start the Vite development server
+### 3. Run the Development Server
+```bash
 npm run dev
 ```
 
-Visit `http://localhost:5173` in your browser.
+The application will start locally at:
+```
+http://localhost:5173
+```
+
+---
+
+## 📦 Creating a Production Build
+
+To build the optimized static production bundle:
+
+```bash
+npm run build
+```
+
+This compiles all assets into the `./dist` folder with sub-second build times ($\approx 800\text{ms}$).
+
+To test the production build locally:
+```bash
+npm run preview
+```
 
 ---
 
 ## 🌐 Deploying to Render (Static Site)
 
-CyberSafe is pre-configured for deployment as a static site on Render:
+CyberSafe includes a pre-configured [`render.yaml`](./render.yaml) file for instant deployment on Render:
 
-### Option 1: Automatic Blueprint (`render.yaml`)
-1. Push your repository to GitHub or GitLab.
-2. In the Render Dashboard, click **New +** and select **Blueprint**.
-3. Connect your repository. Render will automatically detect `render.yaml` and configure the static site.
-
-### Option 2: Manual Static Site Setup
-1. In the Render Dashboard, click **New +** > **Static Site**.
-2. Connect your repository.
-3. Configure the following build settings:
-   - **Name**: `cybersafe`
+1. Push your code to your GitHub repository.
+2. In the [Render Dashboard](https://dashboard.render.com/), select **New +** $\rightarrow$ **Static Site** (or **Blueprint**).
+3. Connect your `CyberSafe-Wispr-Flow` GitHub repository.
+4. Configure the build parameters:
    - **Branch**: `main`
    - **Build Command**: `npm run build`
    - **Publish Directory**: `dist`
-4. Under **Redirects/Rewrites**:
+5. Configure the SPA Rewrite Rule:
    - **Type**: `Rewrite`
    - **Source**: `/*`
    - **Destination**: `/index.html`
-5. Click **Create Static Site**.
+6. Click **Deploy**. Render will generate your live production URL with automated SSL certificates and CDN distribution.
 
 ---
 
-## 🛠️ Built With
-- **Vite** - High-performance next-generation frontend build tooling
-- **React 19** - Component architecture and reactive state management
-- **Tailwind CSS v4** - Clean modern cybersecurity dark-mode design system
-- **Lucide React** - High-clarity iconography
-- **Canvas Confetti** - Certification celebration animations
-- **Web Speech API** - Voice recognition and dictation for the Wispr Flow challenge
+## 📄 License
 
----
-
-## 📜 License
-MIT License. Created for the Wispr Flow Voice-Driven Development Challenge.
+This project is licensed under the **MIT License**. Created with ❤️ for the **Wispr Flow Voice-Driven Development Challenge**.
