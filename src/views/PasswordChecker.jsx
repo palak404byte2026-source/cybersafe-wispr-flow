@@ -1,18 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   KeyRound,
   Eye,
   EyeOff,
   Copy,
   Check,
-  ShieldCheck,
   ShieldAlert,
   Lock,
   Sparkles,
   RefreshCw,
   CheckCircle2,
   XCircle,
-  Clock,
   Cpu,
   Info
 } from 'lucide-react';
@@ -35,22 +33,33 @@ export default function PasswordChecker({
   const [genSymbols, setGenSymbols] = useState(true);
   const [generatedResult, setGeneratedResult] = useState('');
 
-  // Handle external voice-generated passwords
+  const updatePasswordState = (newPassword) => {
+    setPassword(newPassword);
+    const evalRes = evaluatePassword(newPassword || '');
+    onPasswordEvaluated?.(evalRes.score, evalRes.label);
+  };
+
+  const [prevExternal, setPrevExternal] = useState(externalGeneratedPassword);
+  if (externalGeneratedPassword && externalGeneratedPassword !== prevExternal) {
+    setPrevExternal(externalGeneratedPassword);
+    setPassword(externalGeneratedPassword);
+  }
+
+  const onPasswordEvaluatedRef = useRef(onPasswordEvaluated);
+  useEffect(() => {
+    onPasswordEvaluatedRef.current = onPasswordEvaluated;
+  }, [onPasswordEvaluated]);
+
+  // Notify parent of external voice-generated passwords
   useEffect(() => {
     if (externalGeneratedPassword && typeof externalGeneratedPassword === 'string') {
-      setPassword(externalGeneratedPassword);
+      const evalRes = evaluatePassword(externalGeneratedPassword);
+      onPasswordEvaluatedRef.current?.(evalRes.score, evalRes.label);
     }
   }, [externalGeneratedPassword]);
 
   // Real-time local evaluation (handles empty string safely)
   const result = evaluatePassword(password || '');
-
-  useEffect(() => {
-    if (onPasswordEvaluated) {
-      // Passes only non-sensitive score and label
-      onPasswordEvaluated(result.score, result.label);
-    }
-  }, [password, result.score, result.label]);
 
   const handleCopy = (text) => {
     if (!text) return;
@@ -59,7 +68,7 @@ export default function PasswordChecker({
       setCopied(true);
       onShowToast?.({ type: 'success', message: 'Password securely copied to clipboard!' });
       setTimeout(() => setCopied(false), 2000);
-    } catch (e) {
+    } catch {
       onShowToast?.({ type: 'warning', message: 'Unable to access clipboard. Please copy manually.' });
     }
   };
@@ -152,7 +161,7 @@ export default function PasswordChecker({
                 id="password-field"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => updatePasswordState(e.target.value)}
                 placeholder="Type a password to evaluate (e.g., K9#xP2$vL9@mQ4)..."
                 className="w-full px-4 py-3.5 pr-24 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-400 text-white placeholder-slate-500 font-mono text-sm sm:text-base outline-none transition-all"
                 autoComplete="off"
@@ -243,7 +252,7 @@ export default function PasswordChecker({
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => setPassword(preset.val)}
+                    onClick={() => updatePasswordState(preset.val)}
                     className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 text-[11px] text-slate-300 hover:text-white transition-all font-mono focus-visible:ring-2 focus-visible:ring-cyan-400"
                     aria-label={`Test preset password: ${preset.val} (${preset.label})`}
                   >
@@ -454,7 +463,7 @@ export default function PasswordChecker({
                 <button
                   type="button"
                   onClick={() => {
-                    setPassword(generatedResult);
+                    updatePasswordState(generatedResult);
                     onShowToast?.({ type: 'info', message: 'Loaded into Password Strength Checker!' });
                   }}
                   className="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white transition-colors focus-visible:ring-2 focus-visible:ring-cyan-400"

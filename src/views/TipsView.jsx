@@ -12,8 +12,7 @@ import {
   Fish,
   Globe,
   Smartphone,
-  Wifi,
-  BookmarkCheck
+  Wifi
 } from 'lucide-react';
 import { SECURITY_TIPS, CATEGORIES, GLOSSARY_TERMS } from '../utils/securityTips';
 
@@ -22,7 +21,7 @@ export default function TipsView({
   bookmarkedTips = {},
   onToggleMastered,
   onToggleBookmark,
-  onShowToast
+  _onShowToast
 }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');

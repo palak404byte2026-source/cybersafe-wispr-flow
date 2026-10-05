@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import VoiceAssistant from './components/VoiceAssistant';
@@ -23,18 +23,6 @@ export default function App() {
   const [quizScore, setQuizScore] = useState(() => getStoredData(KEYS.QUIZ_RESULTS, 0));
   const [quizCompleted, setQuizCompleted] = useState(() => getStoredData('cybersafe_quiz_completed', false));
   const [scannedUrls, setScannedUrls] = useState(() => getStoredData(KEYS.URL_HISTORY, []));
-  const [checklistState, setChecklistState] = useState(() =>
-    getStoredData(KEYS.CHECKLIST_STATE, {
-      mfa: true,
-      auto_updates: true,
-      password_manager: false,
-      vpn_public: false,
-      screen_lock: true,
-      backups: false,
-      passkeys: false,
-      privacy_audit: true,
-    })
-  );
   const [masteredTips, setMasteredTips] = useState(() => getStoredData(KEYS.MASTERED_TIPS, {}));
   const [bookmarkedTips, setBookmarkedTips] = useState(() => getStoredData(KEYS.BOOKMARKED_TIPS, {}));
   const [recentActivities, setRecentActivities] = useState(() =>
@@ -78,7 +66,7 @@ export default function App() {
   };
 
   // Handlers for modules
-  const handlePasswordEvaluated = (score, label) => {
+  const handlePasswordEvaluated = (score, _label) => {
     setPasswordScore(score);
     setStoredData(KEYS.PASSWORD_HISTORY, score);
   };
@@ -99,18 +87,6 @@ export default function App() {
     showToast({
       type: result.threatScore > 50 ? 'warning' : 'success',
       message: `Inspection finished for ${result.hostname}. Verdict: ${result.riskLevel}.`
-    });
-  };
-
-  const handleToggleChecklistItem = (id) => {
-    const updated = { ...checklistState, [id]: !checklistState[id] };
-    setChecklistState(updated);
-    setStoredData(KEYS.CHECKLIST_STATE, updated);
-    const item = HYGIENE_ITEMS.find(i => i.id === id);
-    const toggledOn = updated[id];
-    showToast({
-      type: 'info',
-      message: `${toggledOn ? 'Completed' : 'Unchecked'}: ${item?.title || 'Control'}`
     });
   };
 
@@ -221,7 +197,6 @@ export default function App() {
 
       {/* Floating Wispr Flow Voice Assistant */}
       <VoiceAssistant
-        currentView={currentView}
         setCurrentView={setCurrentView}
         onShowToast={showToast}
         overallScore={overallSecurityScore}

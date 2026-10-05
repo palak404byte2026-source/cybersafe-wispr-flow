@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Volume2, VolumeX, Sparkles, X, ChevronRight, Play } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, Sparkles, X, Play } from 'lucide-react';
 
 export default function VoiceAssistant({
-  currentView,
   setCurrentView,
   onShowToast,
   overallScore = 0,
@@ -10,17 +9,23 @@ export default function VoiceAssistant({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [speechSupported, setSpeechSupported] = useState(true);
+  const [speechSupported, setSpeechSupported] = useState(() => {
+    return typeof window !== 'undefined' && Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+  });
   const [spokenFeedback, setSpokenFeedback] = useState(true);
   const [transcript, setTranscript] = useState('');
-  const [lastCommand, setLastCommand] = useState('');
   const recognitionRef = useRef(null);
+  const handleVoiceCommandRef = useRef(null);
+  const onShowToastRef = useRef(onShowToast);
+
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
 
   // Initialize Speech Recognition
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null;
     if (!SpeechRecognition) {
-      setSpeechSupported(false);
       return;
     }
 
@@ -41,7 +46,7 @@ export default function VoiceAssistant({
         setTranscript(currentTranscript);
 
         if (event.results[0].isFinal) {
-          handleVoiceCommand(currentTranscript);
+          handleVoiceCommandRef.current?.(currentTranscript);
         }
       };
 
@@ -49,7 +54,7 @@ export default function VoiceAssistant({
         console.warn('Speech recognition error:', event.error);
         setIsListening(false);
         if (event.error !== 'no-speech') {
-          onShowToast({
+          onShowToastRef.current?.({
             type: 'warning',
             message: `Voice error: ${event.error}. You can still use the 1-click voice command buttons!`
           });
@@ -63,7 +68,7 @@ export default function VoiceAssistant({
       recognitionRef.current = recognition;
     } catch (e) {
       console.warn('Speech Recognition setup failed:', e);
-      setSpeechSupported(false);
+      setTimeout(() => setSpeechSupported(false), 0);
     }
   }, []);
 
@@ -107,7 +112,6 @@ export default function VoiceAssistant({
 
   const handleVoiceCommand = (rawText) => {
     const text = rawText.toLowerCase().trim();
-    setLastCommand(rawText);
 
     if (text.includes('password') || text.includes('passwords') || text.includes('check password') || text.includes('strength')) {
       setCurrentView('passwords');
@@ -178,6 +182,10 @@ export default function VoiceAssistant({
     speakText('Command not recognized. Please choose from the available options.');
     onShowToast({ type: 'warning', message: fallbackResponse });
   };
+
+  useEffect(() => {
+    handleVoiceCommandRef.current = handleVoiceCommand;
+  });
 
   const sampleCommands = [
     { label: 'Check Password Strength', cmd: 'Check password' },

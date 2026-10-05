@@ -9,9 +9,7 @@ import {
   XCircle,
   Clock,
   Sparkles,
-  Lock,
-  Globe,
-  Info
+  Lock
 } from 'lucide-react';
 import { evaluateUrl, DEMO_URLS } from '../utils/urlEvaluator';
 
@@ -43,7 +41,7 @@ export default function UrlScanner({ onUrlScanned, onShowToast, scanHistory = []
 
       setScanResult(result);
       onUrlScanned?.(result);
-    } catch (err) {
+    } catch {
       // Catch any unexpected parsing error and show friendly message
       const friendlyMsg = 'Unable to analyze this input. Please verify that the address conforms to standard URL format.';
       setErrorMessage(friendlyMsg);

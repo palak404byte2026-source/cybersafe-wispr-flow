@@ -5,7 +5,6 @@ import {
   Fish,
   Link2,
   ShieldCheck,
-  AlertTriangle,
   ArrowRight,
   Lock,
   Info
@@ -28,7 +27,7 @@ export default function SecurityScoreView({
   const quizPoints = quizCompleted ? Math.min(35, Math.round((Number(quizScore) / 100) * 35)) : 0;
   const urlPoints = Math.min(30, Number(scannedUrlsCount) * 10);
 
-  const calculatedTotal = Math.min(100, passwordPoints + quizPoints + urlPoints);
+  const calculatedTotal = overallScore > 0 ? overallScore : Math.min(100, passwordPoints + quizPoints + urlPoints);
 
   // Security levels: Needs Improvement, Fair, Good, Intelligent / Excellent
   let level = 'Needs Improvement';

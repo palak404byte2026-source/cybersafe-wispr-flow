@@ -53,7 +53,7 @@ export function evaluateUrl(inputUrl) {
         malformedReason = 'Hostname lacks a valid domain extension or TLD structure.';
       }
     }
-  } catch (err) {
+  } catch {
     isMalformed = true;
     malformedReason = 'Malformed URL structure. Unable to parse hostname and protocol.';
   }

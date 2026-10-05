@@ -81,7 +81,7 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
             spread: 70,
             origin: { y: 0.6 }
           });
-        } catch (e) {
+        } catch {
           // ignore canvas-confetti error if not supported
         }
         onShowToast?.({ type: 'success', message: `Great job! Score: ${correctCount}/5 (${percentage}%)` });
