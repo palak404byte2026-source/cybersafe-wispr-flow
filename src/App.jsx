@@ -8,7 +8,7 @@ import DashboardView from './views/DashboardView';
 import PasswordChecker from './views/PasswordChecker';
 import PhishingQuiz from './views/PhishingQuiz';
 import UrlScanner from './views/UrlScanner';
-import SecurityScoreView, { HYGIENE_ITEMS } from './views/SecurityScoreView';
+import SecurityScoreView from './views/SecurityScoreView';
 import TipsView from './views/TipsView';
 
 import { getStoredData, setStoredData, KEYS } from './utils/storage';
@@ -141,19 +141,16 @@ export default function App() {
     addRecentActivity('password', 'Wispr Voice Generated Password', 'Fortified 18-character key generated');
   };
 
-  // Dynamic Overall Security Score calculation (0 to 100)
-  const passwordWeight = Math.min(25, Math.round((passwordScore / 100) * 25));
-  const quizWeight = quizCompleted ? Math.min(25, Math.round((quizScore / 100) * 25)) : 0;
-  const urlWeight = Math.min(20, scannedUrls.length * 5);
+  // Dynamic Overall Security Score calculation (0 to 100):
+  // 1. Password Strength Result: up to 35 points
+  // 2. Phishing Quiz Result: up to 35 points
+  // 3. URL Safety Activity: up to 30 points (10 pts per scanned link, max 30)
+  const passwordPoints = Math.min(35, Math.round((passwordScore / 100) * 35));
+  const quizPoints = quizCompleted ? Math.min(35, Math.round((quizScore / 100) * 35)) : 0;
+  const urlPoints = Math.min(30, scannedUrls.length * 10);
 
-  let checklistPoints = 0;
-  HYGIENE_ITEMS.forEach(item => {
-    if (checklistState[item.id]) checklistPoints += item.points;
-  });
+  const overallSecurityScore = Math.min(100, passwordPoints + quizPoints + urlPoints);
 
-  const overallSecurityScore = Math.min(100, passwordWeight + quizWeight + urlWeight + checklistPoints);
-
-  const completedChecklistCount = Object.values(checklistState).filter(Boolean).length;
 
   return (
     <div className="min-h-screen bg-[#0b0f19] text-slate-100 flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
@@ -174,12 +171,6 @@ export default function App() {
             quizCompleted={quizCompleted}
             quizScore={quizScore}
             scannedUrlsCount={scannedUrls.length}
-            completedChecklistCount={completedChecklistCount}
-            recentActivities={recentActivities}
-            masteredTips={masteredTips}
-            bookmarkedTips={bookmarkedTips}
-            onToggleMasteredTip={handleToggleMasteredTip}
-            onToggleBookmarkTip={handleToggleBookmarkTip}
           />
         )}
 
@@ -213,9 +204,6 @@ export default function App() {
             quizScore={quizScore}
             quizCompleted={quizCompleted}
             scannedUrlsCount={scannedUrls.length}
-            checklistState={checklistState}
-            onToggleChecklistItem={handleToggleChecklistItem}
-            onShowToast={showToast}
             setCurrentView={setCurrentView}
           />
         )}

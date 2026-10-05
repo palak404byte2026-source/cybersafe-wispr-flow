@@ -1,49 +1,77 @@
-// URL Safety Evaluator - Client-Side Threat Intelligence & Heuristics
+// Educational URL Safety Checker - 100% Client-Side Heuristics
+// Checks:
+// 1. Whether HTTPS is used
+// 2. Whether the host name is an IP address
+// 3. Whether suspicious keywords appear in the URL
+// 4. Whether there are unusually many subdomains
+// 5. Whether the URL is malformed
+// 6. Whether URL character characteristics are present (@, % encoding, excessive hyphens, non-standard ports, punycode)
+
+const SUSPICIOUS_KEYWORDS = [
+  'login', 'signin', 'verify', 'verification', 'update', 'account', 'banking',
+  'secure', 'security', 'wallet', 'confirm', 'recovery', 'password', 'credential',
+  'auth', 'authorize', 'free-gift', 'airdrop', 'claim', 'billing', 'urgent', 'suspended'
+];
 
 const SUSPICIOUS_TLDS = new Set([
-  'zip', 'mov', 'xyz', 'top', 'tk', 'ml', 'ga', 'cf', 'gq', 'work', 'click', 'buzz',
-  'country', 'cam', 'party', 'rest', 'fit', 'racing', 'download', 'stream', 'kim', 'science'
+  'xyz', 'top', 'tk', 'zip', 'mov', 'cam', 'work', 'click', 'buzz', 'ml', 'ga', 'cf', 'gq'
 ]);
-
-const POPULAR_BRANDS = [
-  { name: 'PayPal', patterns: [/paypa[l1i]/i, /pay-pal/i, /payp-al/i], legitimate: 'paypal.com' },
-  { name: 'Google', patterns: [/g[o0][o0]g[l1]e/i, /goog1e/i], legitimate: 'google.com' },
-  { name: 'Apple', patterns: [/app[l1i]e/i, /apple-id/i], legitimate: 'apple.com' },
-  { name: 'Microsoft', patterns: [/micr[o0]s[o0]ft/i, /ms-verify/i, /office365/i], legitimate: 'microsoft.com' },
-  { name: 'Amazon', patterns: [/am[a4]z[o0]n/i, /arnazon/i], legitimate: 'amazon.com' },
-  { name: 'Netflix', patterns: [/netf[l1]ix/i, /netflx/i], legitimate: 'netflix.com' },
-  { name: 'Chase Bank', patterns: [/chase-secure/i, /chase-verify/i], legitimate: 'chase.com' },
-  { name: 'Meta / Facebook', patterns: [/faceb[o0][o0]k/i, /meta-support/i], legitimate: 'facebook.com' },
-  { name: 'Coinbase', patterns: [/c[o0]inb[a4]se/i, /coin-base/i], legitimate: 'coinbase.com' },
-  { name: 'Bank of America', patterns: [/bank[o0]famerica/i, /bofa-security/i], legitimate: 'bankofamerica.com' }
-];
-
-const PHISHING_KEYWORDS = [
-  'login', 'signin', 'verify', 'verification', 'update', 'account', 'banking', 'secure',
-  'security', 'wallet', 'confirm', 'recovery', 'password', 'credential', 'auth', 'authorize',
-  'free-crypto', 'airdrop', 'claim-reward', 'giftcard', 'billing', 'urgent', 'suspended'
-];
 
 export function evaluateUrl(inputUrl) {
   if (!inputUrl || inputUrl.trim().length === 0) {
     return {
       isValid: false,
-      error: 'Please enter a URL or domain to scan.',
+      error: 'Please enter a URL to check (e.g., https://example.com).',
     };
   }
 
   let raw = inputUrl.trim();
-  if (!/^https?:\/\//i.test(raw)) {
-    raw = 'https://' + raw;
+
+  // Check 5: Whether the URL is malformed
+  let isMalformed = false;
+  let malformedReason = '';
+
+  // Basic sanity check for spaces or invalid protocol
+  if (/\s/.test(raw)) {
+    isMalformed = true;
+    malformedReason = 'URL contains unencoded whitespace characters.';
+  }
+
+  // Prepend https:// if protocol was omitted for parsing
+  let normalized = raw;
+  if (!/^https?:\/\//i.test(normalized)) {
+    normalized = 'https://' + normalized;
   }
 
   let parsedUrl;
   try {
-    parsedUrl = new URL(raw);
+    parsedUrl = new URL(normalized);
+    // Extra validation on hostname
+    if (!parsedUrl.hostname || !parsedUrl.hostname.includes('.') && !/^localhost$/i.test(parsedUrl.hostname)) {
+      if (!/^(\d{1,3}\.){3}\d{1,3}$/.test(parsedUrl.hostname)) {
+        isMalformed = true;
+        malformedReason = 'Hostname lacks a valid domain extension or TLD structure.';
+      }
+    }
   } catch (err) {
+    isMalformed = true;
+    malformedReason = 'Malformed URL structure. Unable to parse hostname and protocol.';
+  }
+
+  if (isMalformed) {
     return {
       isValid: false,
-      error: 'Invalid URL format. Please enter a valid web address (e.g., https://example.com).',
+      isMalformed: true,
+      error: `Malformed URL: ${malformedReason}`,
+      indicators: [
+        {
+          name: 'URL Format Integrity',
+          detected: true,
+          status: 'fail',
+          severity: 'high',
+          explanation: `The URL is syntactically malformed: ${malformedReason}. Legitimate links follow RFC 3986 URI specifications.`
+        }
+      ]
     };
   }
 
@@ -54,191 +82,183 @@ export function evaluateUrl(inputUrl) {
   const port = parsedUrl.port;
   const fullUrl = parsedUrl.href;
 
-  const findings = [];
+  const indicators = [];
   let threatScore = 0; // 0 to 100
 
-  // 1. Protocol check
+  // 1. Check whether HTTPS is used
   const isHttps = protocol === 'https:';
   if (!isHttps) {
     threatScore += 25;
-    findings.push({
-      category: 'Encryption',
+    indicators.push({
+      name: 'Transport Protocol (HTTPS)',
+      detected: true,
+      status: 'warning',
       severity: 'medium',
-      title: 'Insecure HTTP Protocol',
-      description: 'The URL uses unencrypted HTTP. Data sent to this site can be intercepted by third parties.',
-      status: 'fail'
+      title: 'Insecure HTTP Protocol Detected',
+      explanation: 'The link transmits over unencrypted HTTP. Any credentials or sensitive data entered can be intercepted in transit via eavesdropping or Man-in-the-Middle attacks.'
     });
   } else {
-    findings.push({
-      category: 'Encryption',
-      severity: 'safe',
-      title: 'Valid SSL/TLS Protocol (HTTPS)',
-      description: 'Communication is encrypted in transit between browser and server.',
-      status: 'pass'
+    indicators.push({
+      name: 'Transport Protocol (HTTPS)',
+      detected: false,
+      status: 'pass',
+      severity: 'low',
+      title: 'Encrypted HTTPS Protocol Active',
+      explanation: 'Uses Transport Layer Security (TLS/SSL) encryption for transit privacy.'
     });
   }
 
-  // 2. IP Address as Hostname
-  const isIpAddress = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname) || hostname.startsWith('[') && hostname.endsWith(']');
+  // 2. Check whether the host name is an IP address
+  const isIpAddress = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname) || (hostname.startsWith('[') && hostname.endsWith(']'));
   if (isIpAddress) {
     threatScore += 35;
-    findings.push({
-      category: 'Host Identity',
+    indicators.push({
+      name: 'Host Type (IP Address vs Domain)',
+      detected: true,
+      status: 'fail',
       severity: 'high',
-      title: 'Raw IP Address Used as Hostname',
-      description: `Target uses raw IP (${hostname}) instead of a registered domain, a common tactic for malicious C2 servers and disposable phishing nodes.`,
-      status: 'fail'
+      title: 'Direct IP Address Used as Hostname',
+      explanation: `The hostname is a raw IP address (${hostname}) rather than a registered DNS domain name. Threat actors frequently host disposable phishing nodes directly on unindexed IP addresses.`
     });
   } else {
-    findings.push({
-      category: 'Host Identity',
-      severity: 'safe',
-      title: 'Named Domain Architecture',
-      description: 'Uses a formal DNS domain name rather than an unauthenticated IP address.',
-      status: 'pass'
+    indicators.push({
+      name: 'Host Type (IP Address vs Domain)',
+      detected: false,
+      status: 'pass',
+      severity: 'low',
+      title: 'Named Domain Registration',
+      explanation: 'The host resolves to a standard named domain rather than a raw numeric IP address.'
     });
   }
 
-  // 3. TLD Analysis
+  // 3. Check whether suspicious keywords appear in the URL
+  const combinedPathAndQuery = pathname + search + hostname;
+  const matchedKeywords = SUSPICIOUS_KEYWORDS.filter(kw => combinedPathAndQuery.includes(kw));
+  if (matchedKeywords.length > 0) {
+    threatScore += Math.min(30, matchedKeywords.length * 15);
+    indicators.push({
+      name: 'Sensitive Keywords',
+      detected: true,
+      status: matchedKeywords.length > 1 ? 'fail' : 'warning',
+      severity: matchedKeywords.length > 1 ? 'high' : 'medium',
+      title: `Suspicious Action Keywords Found (${matchedKeywords.join(', ')})`,
+      explanation: `The URL path or domain contains sensitive authentication terms: "${matchedKeywords.join(', ')}". Phishing links routinely embed these words to mimic account-recovery or verification screens.`
+    });
+  } else {
+    indicators.push({
+      name: 'Sensitive Keywords',
+      detected: false,
+      status: 'pass',
+      severity: 'low',
+      title: 'No Suspicious Action Keywords Detected',
+      explanation: 'No typical credential-harvesting terms (login, banking, verify, wallet) were detected.'
+    });
+  }
+
+  // 4. Check whether there are unusually many subdomains
   const hostParts = hostname.split('.');
+  const hasManySubdomains = hostParts.length >= 4;
+  if (hasManySubdomains) {
+    threatScore += 25;
+    indicators.push({
+      name: 'Subdomain Stacking',
+      detected: true,
+      status: 'fail',
+      severity: 'high',
+      title: `Unusually High Subdomain Depth (${hostParts.length} levels)`,
+      explanation: `The host contains ${hostParts.length} domain levels (e.g. "${hostname}"). Attackers frequently stack subdomains to trick mobile users who only see the first few words on screen.`
+    });
+  } else {
+    indicators.push({
+      name: 'Subdomain Stacking',
+      detected: false,
+      status: 'pass',
+      severity: 'low',
+      title: 'Normal Domain Depth',
+      explanation: `Host structure is standard (${hostParts.length} levels) without excessive subdomain prefixing.`
+    });
+  }
+
+  // 5. Check URL format / syntax integrity
+  indicators.push({
+    name: 'URL Format Integrity',
+    detected: false,
+    status: 'pass',
+    severity: 'low',
+    title: 'Valid URI Syntax',
+    explanation: 'The URL conforms to standard RFC 3986 formatting specifications without syntax errors.'
+  });
+
+  // 6. Check whether deceptive URL character characteristics are present
+  const charFlags = [];
+  if (raw.includes('@')) {
+    charFlags.push('Embedded "@" character (credential embedding / open redirection lure)');
+    threatScore += 35;
+  }
+  if (/%[0-9a-fA-F]{2}/.test(raw)) {
+    charFlags.push('Percent/hexadecimal character encoding (potential obfuscation)');
+    threatScore += 15;
+  }
+  const hyphenCount = (hostname.match(/-/g) || []).length;
+  if (hyphenCount >= 3) {
+    charFlags.push(`Excessive hyphen stacking (${hyphenCount} hyphens in domain)`);
+    threatScore += 20;
+  }
+  if (hostname.includes('xn--')) {
+    charFlags.push('Punycode / IDN homoglyph prefix (internationalized Cyrillic lookalike)');
+    threatScore += 35;
+  }
   const tld = hostParts.length > 1 ? hostParts[hostParts.length - 1] : '';
   if (SUSPICIOUS_TLDS.has(tld)) {
-    threatScore += 30;
-    findings.push({
-      category: 'Domain Registry',
+    charFlags.push(`High-abuse top-level domain (.${tld})`);
+    threatScore += 25;
+  }
+  if (port && !['80', '443'].includes(port)) {
+    charFlags.push(`Non-standard web communication port (:${port})`);
+    threatScore += 20;
+  }
+
+  if (charFlags.length > 0) {
+    indicators.push({
+      name: 'URL Character Characteristics',
+      detected: true,
+      status: 'fail',
       severity: 'high',
-      title: `High-Risk TLD (Top-Level Domain): .${tld}`,
-      description: `The .${tld} registry has statistically elevated abuse rates for zero-day malware, smishing, and disposable phishing landing pages.`,
-      status: 'fail'
+      title: `Deceptive Character Patterns Detected (${charFlags.length})`,
+      explanation: `The following anomalous character traits were identified: ${charFlags.join('; ')}.`
     });
   } else {
-    findings.push({
-      category: 'Domain Registry',
-      severity: 'safe',
-      title: `Standard Domain Registry (.${tld || 'com'})`,
-      description: 'Domain uses a recognized general or geographic top-level domain.',
-      status: 'pass'
-    });
-  }
-
-  // 4. Punycode & Homoglyph detection (IDN Homograph attacks)
-  const isPunycode = hostname.includes('xn--');
-  const hasNonAscii = /[^\u0000-\u007F]/.test(hostname);
-  if (isPunycode || hasNonAscii) {
-    threatScore += 40;
-    findings.push({
-      category: 'Deception Detection',
-      severity: 'critical',
-      title: 'Internationalized Domain Name (Punycode / Homoglyph)',
-      description: 'URL contains Punycode or non-ASCII characters, often used to mimic trusted ASCII domains (e.g. Cyrillic letters looking identical to Latin letters).',
-      status: 'fail'
-    });
-  }
-
-  // 5. Typosquatting / Brand Impersonation
-  let detectedBrandSquat = null;
-  for (const brand of POPULAR_BRANDS) {
-    const isMatchingBrand = brand.patterns.some(pattern => pattern.test(hostname));
-    const isRealDomain = hostname === brand.legitimate || hostname.endsWith('.' + brand.legitimate);
-    if (isMatchingBrand && !isRealDomain) {
-      detectedBrandSquat = brand;
-      break;
-    }
-  }
-
-  if (detectedBrandSquat) {
-    threatScore += 45;
-    findings.push({
-      category: 'Brand Protection',
-      severity: 'critical',
-      title: `Potential Brand Impersonation: ${detectedBrandSquat.name}`,
-      description: `The domain mimics legitimate brand "${detectedBrandSquat.name}" (${detectedBrandSquat.legitimate}), but is hosted on an unauthorized host (${hostname}).`,
-      status: 'fail'
-    });
-  }
-
-  // 6. Subdomain abuse
-  if (hostParts.length >= 4) {
-    threatScore += 20;
-    findings.push({
-      category: 'Structure',
-      severity: 'medium',
-      title: 'Excessive Subdomain Stacking',
-      description: `The hostname has ${hostParts.length} levels. Attackers often prefix reputable names as subdomains (e.g., login.bank.xyz.evil.com).`,
-      status: 'fail'
-    });
-  }
-
-  // 7. Embedded Credentials / Redirection Trick
-  if (fullUrl.includes('@')) {
-    threatScore += 40;
-    findings.push({
-      category: 'URL Syntax',
-      severity: 'critical',
-      title: 'Credential Obfuscation / Open Redirect (@ symbol)',
-      description: 'The URL uses the "@" syntax, which misleads users into thinking they are visiting the address before the @ symbol.',
-      status: 'fail'
-    });
-  }
-
-  // 8. Phishing Keywords in Path or Query
-  const combinedPathAndQuery = pathname + search;
-  const matchedKeywords = PHISHING_KEYWORDS.filter(kw => combinedPathAndQuery.includes(kw));
-  if (matchedKeywords.length > 0) {
-    threatScore += Math.min(25, matchedKeywords.length * 10);
-    findings.push({
-      category: 'Semantic Analysis',
-      severity: matchedKeywords.length > 2 ? 'high' : 'medium',
-      title: `Sensitive Action Keywords Detected (${matchedKeywords.slice(0, 3).join(', ')})`,
-      description: `URL path/parameters contain words frequently targeted for credential harvesting: "${matchedKeywords.join(', ')}".`,
-      status: 'warning'
-    });
-  }
-
-  // 9. Excessive Length
-  if (fullUrl.length > 100) {
-    threatScore += 10;
-    findings.push({
-      category: 'Anatomy',
+    indicators.push({
+      name: 'URL Character Characteristics',
+      detected: false,
+      status: 'pass',
       severity: 'low',
-      title: `Excessive URL Length (${fullUrl.length} characters)`,
-      description: 'Unusually long URLs are sometimes used to hide the true destination off-screen on mobile devices.',
-      status: 'warning'
+      title: 'Standard Character Encoding',
+      explanation: 'No credential obfuscation (@ symbol), excessive hyphens, punycode prefixes, or non-standard ports detected.'
     });
   }
 
-  // 10. Non-standard Port
-  if (port && !['80', '443'].includes(port)) {
-    threatScore += 20;
-    findings.push({
-      category: 'Port Analysis',
-      severity: 'medium',
-      title: `Non-Standard Web Port (${port})`,
-      description: `Target communicates over custom port :${port}, uncommon for standard commercial web services.`,
-      status: 'fail'
-    });
-  }
-
-  // Cap threatScore between 0 and 100
+  // Cap threat score between 0 and 100
   const normalizedThreat = Math.min(100, Math.max(0, threatScore));
   const safetyScore = 100 - normalizedThreat;
 
-  let riskLevel = 'Safe';
+  // Display results: Low Risk, Suspicious, High Risk
+  let riskLevel = 'Low Risk';
   let badgeColor = 'emerald';
-  let recommendation = 'This URL displays normal structural markers and no immediate deception flags.';
+  let riskSummary = 'This URL exhibits typical structural markers with no critical threat indicators.';
 
-  if (normalizedThreat >= 70) {
-    riskLevel = 'Dangerous Phishing Risk';
+  if (normalizedThreat >= 60) {
+    riskLevel = 'High Risk';
     badgeColor = 'red';
-    recommendation = 'DO NOT visit this link or enter any personal credentials. It displays critical indicators of phishing or malicious deception.';
-  } else if (normalizedThreat >= 40) {
-    riskLevel = 'Suspicious / Untrusted';
+    riskSummary = 'CRITICAL WARNING: This URL exhibits multiple deceptive indicators consistent with malicious phishing or credential harvesting.';
+  } else if (normalizedThreat >= 25) {
+    riskLevel = 'Suspicious';
     badgeColor = 'amber';
-    recommendation = 'Exercise caution. Several heuristic markers deviate from standard trusted services.';
-  } else if (normalizedThreat >= 15) {
+    riskSummary = 'CAUTION: This URL shows suspicious structural anomalies. Inspect sender authenticity closely before clicking or entering details.';
+  } else {
     riskLevel = 'Low Risk';
-    badgeColor = 'cyan';
-    recommendation = 'Minor security cautions found. Verify sender authenticity before interacting.';
+    badgeColor = 'emerald';
+    riskSummary = 'Low risk detected based on standard client-side heuristics and encrypted HTTPS transport.';
   }
 
   return {
@@ -246,23 +266,22 @@ export function evaluateUrl(inputUrl) {
     url: fullUrl,
     hostname,
     protocol,
-    tld,
     threatScore: normalizedThreat,
     safetyScore,
     riskLevel,
     badgeColor,
-    recommendation,
-    findings,
-    isHttps,
-    isIpAddress,
-    scannedAt: new Date().toLocaleTimeString(),
+    riskSummary,
+    indicators,
+    scannedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    educationalDisclaimer: 'This is an educational demonstration and heuristic analysis tool. It is not a replacement for professional threat intelligence feeds, real-time antivirus software, or an enterprise secure web gateway (SWG).'
   };
 }
 
 export const DEMO_URLS = [
-  { label: 'Legitimate Service', url: 'https://www.google.com/search?q=cybersecurity' },
-  { label: 'Brand Spoofing Attack', url: 'https://paypal-security-verification.top/signin' },
-  { label: 'IP Address C2 Host', url: 'http://185.220.101.5/admin/login.php' },
-  { label: 'Punycode Impersonation', url: 'https://xn--e1afmkfd.xn--p1ai/auth/bank' },
-  { label: 'Credential Stealer Subdomains', url: 'https://account.update.login.bofa.verify-portal.xyz/billing' },
+  { label: 'Safe Bank Link', url: 'https://www.chase.com/personal/banking' },
+  { label: 'Deceptive Phishing Link', url: 'http://secure-login.chase-account-verify.xyz/signin' },
+  { label: 'Raw IP C2 Host', url: 'http://185.220.101.5/admin/login.php' },
+  { label: 'Subdomain Stacking', url: 'https://login.verify.account.bofa.security-portal.xyz' },
+  { label: 'Punycode Homoglyph', url: 'https://xn--e1afmkfd.xn--p1ai/auth' },
+  { label: 'Malformed Syntax', url: 'https://bad link with spaces^and^symbols.com' },
 ];
