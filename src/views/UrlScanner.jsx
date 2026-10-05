@@ -11,31 +11,45 @@ import {
   Sparkles,
   Lock,
   Globe,
-  Info,
-  Server,
-  Fingerprint
+  Info
 } from 'lucide-react';
 import { evaluateUrl, DEMO_URLS } from '../utils/urlEvaluator';
 
 export default function UrlScanner({ onUrlScanned, onShowToast, scanHistory = [] }) {
   const [inputUrl, setInputUrl] = useState('');
   const [scanResult, setScanResult] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleCheckUrl = (urlToCheck = inputUrl) => {
+    setErrorMessage('');
+
+    // Handle empty input gracefully
     if (!urlToCheck || !urlToCheck.trim()) {
-      onShowToast?.({ type: 'warning', message: 'Please enter a URL to check.' });
+      const msg = 'Please enter a web address or domain (e.g. https://www.example.com) to check.';
+      setErrorMessage(msg);
+      setScanResult(null);
+      onShowToast?.({ type: 'warning', message: msg });
       return;
     }
 
-    const result = evaluateUrl(urlToCheck);
-    if (!result.isValid) {
+    try {
+      const result = evaluateUrl(urlToCheck);
+      if (!result.isValid) {
+        setErrorMessage(result.error || 'The entered web address is invalid or malformed.');
+        setScanResult(result);
+        onShowToast?.({ type: 'error', message: result.error || 'Invalid URL entered.' });
+        return;
+      }
+
       setScanResult(result);
-      onShowToast?.({ type: 'error', message: result.error });
-      return;
+      onUrlScanned?.(result);
+    } catch (err) {
+      // Catch any unexpected parsing error and show friendly message
+      const friendlyMsg = 'Unable to analyze this input. Please verify that the address conforms to standard URL format.';
+      setErrorMessage(friendlyMsg);
+      setScanResult(null);
+      onShowToast?.({ type: 'error', message: friendlyMsg });
     }
-
-    setScanResult(result);
-    onUrlScanned?.(result);
   };
 
   return (
@@ -44,7 +58,7 @@ export default function UrlScanner({ onUrlScanned, onShowToast, scanHistory = []
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
         <div>
           <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-1">
-            <Link2 className="w-4 h-4" />
+            <Link2 className="w-4 h-4" aria-hidden="true" />
             <span>Educational URL Safety Analyzer</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
@@ -56,21 +70,25 @@ export default function UrlScanner({ onUrlScanned, onShowToast, scanHistory = []
         </div>
         <div>
           <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 font-medium">
-            <Lock className="w-3.5 h-3.5" />
+            <Lock className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Zero External API Calls</span>
           </span>
         </div>
       </div>
 
       {/* Mandatory Educational Disclaimer */}
-      <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 flex items-start gap-3.5 shadow-lg">
-        <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 shrink-0 mt-0.5">
+      <div
+        className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 flex items-start gap-3.5 shadow-lg"
+        role="region"
+        aria-label="Educational Demonstration Notice"
+      >
+        <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 shrink-0 mt-0.5" aria-hidden="true">
           <AlertTriangle className="w-5 h-5" />
         </div>
         <div className="text-xs sm:text-sm space-y-1">
-          <h4 className="font-bold text-amber-100 flex items-center gap-2">
+          <h2 className="font-bold text-amber-100 text-sm">
             Educational Demonstration Notice
-          </h4>
+          </h2>
           <p className="text-slate-300 leading-relaxed">
             This tool performs client-side heuristic inspection in the browser for educational awareness. It is <strong>an educational demonstration and not a replacement for professional threat intelligence, antivirus software, or an enterprise security gateway</strong>.
           </p>
@@ -88,21 +106,45 @@ export default function UrlScanner({ onUrlScanned, onShowToast, scanHistory = []
             id="url-input"
             type="text"
             value={inputUrl}
-            onChange={(e) => setInputUrl(e.target.value)}
+            onChange={(e) => {
+              setInputUrl(e.target.value);
+              if (errorMessage) setErrorMessage('');
+            }}
             onKeyDown={(e) => e.key === 'Enter' && handleCheckUrl()}
             placeholder="e.g. https://www.chase.com or http://secure-login.xyz..."
-            className="flex-1 px-4 py-3.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 font-mono text-xs sm:text-sm outline-none transition-all"
+            className={`flex-1 px-4 py-3.5 rounded-xl bg-slate-950 border text-white placeholder-slate-500 font-mono text-xs sm:text-sm outline-none transition-all focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-400 ${
+              errorMessage ? 'border-red-500/60' : 'border-slate-700/80'
+            }`}
+            aria-describedby="url-hint url-error-msg"
+            aria-invalid={!!errorMessage}
           />
 
           <button
             type="button"
             onClick={() => handleCheckUrl()}
-            className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all hover:scale-105 active:scale-95 shrink-0"
+            className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-cyan-400 shrink-0"
+            aria-label="Check URL safety"
           >
-            <Search className="w-4 h-4" />
+            <Search className="w-4 h-4" aria-hidden="true" />
             <span>Check URL</span>
           </button>
         </div>
+
+        <p id="url-hint" className="text-[11px] text-slate-500">
+          Enter full address including domain (e.g. https://example.com/path).
+        </p>
+
+        {/* Friendly Error Display */}
+        {errorMessage && (
+          <div
+            id="url-error-msg"
+            className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200 text-xs flex items-center gap-2.5 animate-fade-in"
+            role="alert"
+          >
+            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" aria-hidden="true" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         {/* Demo Preset Buttons */}
         <div className="pt-2 border-t border-slate-800">
@@ -118,9 +160,10 @@ export default function UrlScanner({ onUrlScanned, onShowToast, scanHistory = []
                   setInputUrl(demo.url);
                   handleCheckUrl(demo.url);
                 }}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-xs text-slate-300 hover:text-white transition-all font-medium flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-xs text-slate-300 hover:text-white transition-all font-medium flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-cyan-400"
+                aria-label={`Test demo URL: ${demo.label}`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" aria-hidden="true" />
                 <span>{demo.label}</span>
               </button>
             ))}
@@ -128,25 +171,9 @@ export default function UrlScanner({ onUrlScanned, onShowToast, scanHistory = []
         </div>
       </div>
 
-      {/* Malformed URL Warning (if applicable) */}
-      {scanResult && !scanResult.isValid && (
-        <div className="p-6 rounded-2xl bg-red-950/30 border border-red-500/50 shadow-xl space-y-3 animate-fade-in">
-          <div className="flex items-center gap-3 text-red-400 font-bold text-base">
-            <XCircle className="w-6 h-6 shrink-0" />
-            <span>Malformed URL Structure Detected</span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            {scanResult.error}
-          </p>
-          <div className="text-xs text-slate-400 font-mono">
-            Indicator: URL Format Integrity check failed. Please enter a valid protocol and domain (e.g. https://domain.com).
-          </div>
-        </div>
-      )}
-
       {/* Valid Results View */}
       {scanResult && scanResult.isValid && (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-6 animate-fade-in" aria-live="polite">
           {/* Main Verdict Card */}
           <div className={`p-6 sm:p-8 rounded-3xl border shadow-2xl ${
             scanResult.riskLevel === 'High Risk'
@@ -161,7 +188,7 @@ export default function UrlScanner({ onUrlScanned, onShowToast, scanHistory = []
                   scanResult.riskLevel === 'High Risk' ? 'bg-red-500/20 text-red-400' :
                   scanResult.riskLevel === 'Suspicious' ? 'bg-amber-500/20 text-amber-400' :
                   'bg-emerald-500/20 text-emerald-400'
-                }`}>
+                }`} aria-hidden="true">
                   {scanResult.riskLevel === 'High Risk' ? (
                     <ShieldAlert className="w-8 h-8" />
                   ) : scanResult.riskLevel === 'Suspicious' ? (
@@ -204,7 +231,7 @@ export default function UrlScanner({ onUrlScanned, onShowToast, scanHistory = []
                   scanResult.riskLevel === 'High Risk' ? 'text-red-400' :
                   scanResult.riskLevel === 'Suspicious' ? 'text-amber-400' :
                   'text-emerald-400'
-                }`}>
+                }`} aria-label={`Threat score: ${scanResult.threatScore} percent`}>
                   {scanResult.threatScore}%
                 </span>
                 <span className="text-[11px] text-slate-500 block mt-0.5">
@@ -221,10 +248,11 @@ export default function UrlScanner({ onUrlScanned, onShowToast, scanHistory = []
               <span className="text-[11px] text-slate-500 font-mono font-normal">6 Core Checks Evaluated</span>
             </h3>
 
-            <div className="space-y-3 pt-1">
+            <div className="space-y-3 pt-1" role="list">
               {scanResult.indicators.map((ind, index) => (
                 <div
                   key={index}
+                  role="listitem"
                   className={`p-4 rounded-xl border flex items-start gap-3.5 transition-colors ${
                     ind.status === 'pass'
                       ? 'bg-slate-950/60 border-slate-800 text-slate-300'
@@ -233,7 +261,7 @@ export default function UrlScanner({ onUrlScanned, onShowToast, scanHistory = []
                       : 'bg-red-950/20 border-red-500/40 text-red-200'
                   }`}
                 >
-                  <div className="shrink-0 mt-0.5">
+                  <div className="shrink-0 mt-0.5" aria-hidden="true">
                     {ind.status === 'pass' ? (
                       <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                     ) : ind.status === 'warning' ? (
@@ -277,21 +305,30 @@ export default function UrlScanner({ onUrlScanned, onShowToast, scanHistory = []
         <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-cyan-400" />
+              <Clock className="w-4 h-4 text-cyan-400" aria-hidden="true" />
               <span>Recent URL Checks</span>
             </h3>
             <span className="text-xs text-slate-500 font-mono">{scanHistory.length} Checked</span>
           </div>
 
-          <div className="divide-y divide-slate-800">
+          <div className="divide-y divide-slate-800" role="list">
             {scanHistory.slice(0, 5).map((entry, idx) => (
               <div
                 key={idx}
+                role="listitem"
                 onClick={() => {
                   setInputUrl(entry.url);
                   handleCheckUrl(entry.url);
                 }}
-                className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-850 p-2 rounded-lg transition-colors group"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setInputUrl(entry.url);
+                    handleCheckUrl(entry.url);
+                  }
+                }}
+                tabIndex={0}
+                className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-850 p-2 rounded-lg transition-colors group focus-visible:ring-2 focus-visible:ring-cyan-400"
+                aria-label={`Re-check URL: ${entry.url}`}
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold text-white truncate font-mono group-hover:text-cyan-300">

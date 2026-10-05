@@ -12,8 +12,7 @@ import {
   Clock,
   Lock,
   Paperclip,
-  KeyRound,
-  Sparkles
+  KeyRound
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { QUIZ_QUESTIONS } from '../utils/quizQuestions';
@@ -22,17 +21,29 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
-  const [answers, setAnswers] = useState([]); // stores { questionId, selectedIndex, isCorrect }
+  const [answers, setAnswers] = useState([]);
   const [quizFinished, setQuizFinished] = useState(false);
+  const [progressionError, setProgressionError] = useState('');
 
-  const currentQ = QUIZ_QUESTIONS[currentIndex];
+  // Gracefully handle edge cases if QUIZ_QUESTIONS is undefined or empty
+  const questionsList = Array.isArray(QUIZ_QUESTIONS) && QUIZ_QUESTIONS.length > 0 ? QUIZ_QUESTIONS : [];
+  const currentQ = questionsList[currentIndex] || {
+    id: 1,
+    theme: 'Phishing Awareness',
+    title: 'Security Question',
+    scenario: 'Loading scenario...',
+    question: 'Please wait...',
+    options: [],
+    explanation: ''
+  };
 
   const handleSelectOption = (index) => {
     if (isAnswered) return;
+    setProgressionError('');
     setSelectedOption(index);
     setIsAnswered(true);
 
-    const isCorrect = currentQ.options[index].isCorrect;
+    const isCorrect = currentQ.options[index]?.isCorrect || false;
     setAnswers(prev => [...prev, {
       questionId: currentQ.id,
       theme: currentQ.theme,
@@ -42,24 +53,37 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
     }]);
   };
 
+  // Prevent invalid progression: cannot continue without selecting an answer
   const handleNext = () => {
-    if (currentIndex < QUIZ_QUESTIONS.length - 1) {
+    if (!isAnswered || selectedOption === null) {
+      setProgressionError('Please select one of the four options above before proceeding.');
+      onShowToast?.({ type: 'warning', message: 'Please select an answer to continue.' });
+      return;
+    }
+
+    setProgressionError('');
+
+    if (currentIndex < questionsList.length - 1) {
       setCurrentIndex(prev => prev + 1);
       setSelectedOption(null);
       setIsAnswered(false);
     } else {
-      // Quiz finished
+      // Quiz completed
       setQuizFinished(true);
       const correctCount = answers.filter(a => a.isCorrect).length + (currentQ.options[selectedOption]?.isCorrect ? 1 : 0);
-      const percentage = Math.round((correctCount / QUIZ_QUESTIONS.length) * 100);
+      const percentage = Math.round((correctCount / questionsList.length) * 100);
       onQuizCompleted?.(percentage);
 
       if (percentage >= 80) {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
+        try {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        } catch (e) {
+          // ignore canvas-confetti error if not supported
+        }
         onShowToast?.({ type: 'success', message: `Great job! Score: ${correctCount}/5 (${percentage}%)` });
       }
     }
@@ -71,22 +95,20 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
     setIsAnswered(false);
     setAnswers([]);
     setQuizFinished(false);
+    setProgressionError('');
   };
 
-  // Theme icons
   const themeIcons = {
-    'Suspicious Links': <Link2 className="w-4 h-4 text-cyan-400" />,
-    'Urgent Messages': <Clock className="w-4 h-4 text-amber-400" />,
-    'Fake Login Pages': <Lock className="w-4 h-4 text-purple-400" />,
-    'Unexpected Attachments': <Paperclip className="w-4 h-4 text-red-400" />,
-    'Requests for Sensitive Information': <KeyRound className="w-4 h-4 text-emerald-400" />
+    'Suspicious Links': <Link2 className="w-4 h-4 text-cyan-400" aria-hidden="true" />,
+    'Urgent Messages': <Clock className="w-4 h-4 text-amber-400" aria-hidden="true" />,
+    'Fake Login Pages': <Lock className="w-4 h-4 text-purple-400" aria-hidden="true" />,
+    'Unexpected Attachments': <Paperclip className="w-4 h-4 text-red-400" aria-hidden="true" />,
+    'Requests for Sensitive Information': <KeyRound className="w-4 h-4 text-emerald-400" aria-hidden="true" />
   };
 
-  // End calculations
   const totalCorrect = answers.filter(a => a.isCorrect).length;
-  const percentageScore = Math.round((totalCorrect / QUIZ_QUESTIONS.length) * 100);
+  const percentageScore = questionsList.length > 0 ? Math.round((totalCorrect / questionsList.length) * 100) : 0;
 
-  // Security awareness messages based on score
   let awarenessTitle = '';
   let awarenessMessage = '';
   let badgeColor = '';
@@ -115,7 +137,7 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
         <div>
           <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-1">
-            <Fish className="w-4 h-4" />
+            <Fish className="w-4 h-4" aria-hidden="true" />
             <span>Interactive Assessment</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
@@ -127,8 +149,11 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
         </div>
 
         {!quizFinished && (
-          <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-mono text-slate-300">
-            <span>Question {currentIndex + 1} of {QUIZ_QUESTIONS.length}</span>
+          <div
+            className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-mono text-slate-300"
+            aria-live="polite"
+          >
+            <span>Question {currentIndex + 1} of {questionsList.length}</span>
           </div>
         )}
       </div>
@@ -139,15 +164,22 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
               <span className="flex items-center gap-1.5 text-cyan-300 font-medium">
-                {themeIcons[currentQ.theme]}
+                {themeIcons[currentQ.theme] || <Fish className="w-4 h-4 text-cyan-400" aria-hidden="true" />}
                 Theme {currentIndex + 1}: {currentQ.theme}
               </span>
-              <span>{Math.round(((currentIndex) / QUIZ_QUESTIONS.length) * 100)}% Complete</span>
+              <span>{Math.round(((currentIndex) / questionsList.length) * 100)}% Complete</span>
             </div>
-            <div className="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden p-0.5 border border-slate-700/50">
+            <div
+              className="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden p-0.5 border border-slate-700/50"
+              role="progressbar"
+              aria-valuenow={currentIndex + 1}
+              aria-valuemin="1"
+              aria-valuemax={questionsList.length}
+              aria-label={`Quiz progress: question ${currentIndex + 1} of ${questionsList.length}`}
+            >
               <div
                 className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-300"
-                style={{ width: `${((currentIndex + 1) / QUIZ_QUESTIONS.length) * 100}%` }}
+                style={{ width: `${((currentIndex + 1) / questionsList.length) * 100}%` }}
               />
             </div>
           </div>
@@ -156,16 +188,20 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
           <div className="p-6 sm:p-8 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl space-y-6">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 text-cyan-300 text-xs font-semibold mb-3 border border-slate-700">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" aria-hidden="true"></span>
                 <span>{currentQ.theme}</span>
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-white">
+              <h2 id="quiz-question-title" className="text-lg sm:text-xl font-bold text-white">
                 {currentQ.title}
               </h2>
             </div>
 
             {/* Scenario Box */}
-            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-300 text-xs sm:text-sm leading-relaxed font-mono">
+            <div
+              className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 text-slate-300 text-xs sm:text-sm leading-relaxed font-mono"
+              role="region"
+              aria-label="Scenario details"
+            >
               <span className="text-[11px] text-slate-500 block uppercase font-bold tracking-wider mb-1">
                 Scenario Simulation:
               </span>
@@ -178,13 +214,18 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
             </h3>
 
             {/* 4 Multiple Choice Answers */}
-            <div className="space-y-3">
+            <div
+              className="space-y-3"
+              role="radiogroup"
+              aria-labelledby="quiz-question-title"
+            >
               {currentQ.options.map((opt, idx) => {
+                const isSelected = selectedOption === idx;
                 let btnStyle = 'bg-slate-950/70 border-slate-800 hover:border-cyan-500/50 hover:bg-slate-850 text-slate-200';
                 if (isAnswered) {
                   if (opt.isCorrect) {
                     btnStyle = 'bg-emerald-500/20 border-emerald-500 text-emerald-200 shadow-lg shadow-emerald-500/10 font-semibold';
-                  } else if (selectedOption === idx) {
+                  } else if (isSelected) {
                     btnStyle = 'bg-red-500/20 border-red-500 text-red-200 shadow-lg shadow-red-500/10';
                   } else {
                     btnStyle = 'bg-slate-950/40 border-slate-900 text-slate-500 opacity-60';
@@ -195,37 +236,47 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
                   <button
                     key={idx}
                     type="button"
+                    role="radio"
+                    aria-checked={isSelected}
                     disabled={isAnswered}
                     onClick={() => handleSelectOption(idx)}
-                    className={`w-full text-left p-4 rounded-xl border text-xs sm:text-sm transition-all flex items-start gap-3.5 ${btnStyle}`}
+                    className={`w-full text-left p-4 rounded-xl border text-xs sm:text-sm transition-all flex items-start gap-3.5 focus-visible:ring-2 focus-visible:ring-cyan-400 ${btnStyle}`}
                   >
-                    <div className="w-6 h-6 rounded-full border border-current shrink-0 flex items-center justify-center text-xs font-mono font-bold mt-0.5">
+                    <div className="w-6 h-6 rounded-full border border-current shrink-0 flex items-center justify-center text-xs font-mono font-bold mt-0.5" aria-hidden="true">
                       {String.fromCharCode(65 + idx)}
                     </div>
                     <span className="flex-1 leading-relaxed">{opt.text}</span>
                     {isAnswered && opt.isCorrect && (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" aria-label="Correct answer" />
                     )}
-                    {isAnswered && selectedOption === idx && !opt.isCorrect && (
-                      <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                    {isAnswered && isSelected && !opt.isCorrect && (
+                      <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" aria-label="Incorrect answer" />
                     )}
                   </button>
                 );
               })}
             </div>
 
-            {/* Brief Answer Explanation (shows immediately after selecting) */}
+            {/* Error Message if user attempts invalid progression */}
+            {progressionError && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex items-center gap-2" role="alert">
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true" />
+                <span>{progressionError}</span>
+              </div>
+            )}
+
+            {/* Answer Explanation & Continue Button */}
             {isAnswered && (
-              <div className="p-5 rounded-xl bg-slate-950 border border-slate-800 space-y-3 animate-fade-in">
+              <div className="p-5 rounded-xl bg-slate-950 border border-slate-800 space-y-3 animate-fade-in" aria-live="polite">
                 <div className="flex items-center gap-2">
                   {currentQ.options[selectedOption]?.isCorrect ? (
                     <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                      <CheckCircle2 className="w-5 h-5" />
+                      <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
                       <span>Correct Answer!</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 text-red-400 font-bold text-sm">
-                      <AlertTriangle className="w-5 h-5" />
+                      <AlertTriangle className="w-5 h-5" aria-hidden="true" />
                       <span>Phished! Incorrect Detection</span>
                     </div>
                   )}
@@ -239,11 +290,12 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
                 {/* Continue to Next Question Button */}
                 <div className="pt-3 flex justify-end">
                   <button
+                    type="button"
                     onClick={handleNext}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/25 transition-all hover:scale-105"
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/25 transition-all hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-cyan-400"
                   >
-                    <span>{currentIndex < QUIZ_QUESTIONS.length - 1 ? 'Next Question' : 'View Final Score'}</span>
-                    <ChevronRight className="w-4 h-4" />
+                    <span>{currentIndex < questionsList.length - 1 ? 'Next Question' : 'View Final Score'}</span>
+                    <ChevronRight className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -255,7 +307,7 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
         <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
           {/* Main Results Card */}
           <div className="p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl text-center space-y-5">
-            <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-1 shadow-lg shadow-cyan-500/30">
+            <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-1 shadow-lg shadow-cyan-500/30" aria-hidden="true">
               <div className="w-full h-full bg-slate-950 rounded-[22px] flex items-center justify-center">
                 <Award className="w-10 h-10 text-cyan-400" />
               </div>
@@ -273,13 +325,13 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
               <div className="flex items-center justify-center gap-4 mt-3">
                 <div className="p-3 px-5 rounded-2xl bg-slate-950 border border-slate-800">
                   <span className="text-[11px] text-slate-500 uppercase font-bold block">Score</span>
-                  <span className="text-3xl font-black font-mono text-white">
-                    {totalCorrect} / {QUIZ_QUESTIONS.length}
+                  <span className="text-3xl font-black font-mono text-white" aria-label={`Score: ${totalCorrect} out of ${questionsList.length}`}>
+                    {totalCorrect} / {questionsList.length}
                   </span>
                 </div>
                 <div className="p-3 px-5 rounded-2xl bg-slate-950 border border-slate-800">
                   <span className="text-[11px] text-slate-500 uppercase font-bold block">Percentage</span>
-                  <span className="text-3xl font-black font-mono text-cyan-400">
+                  <span className="text-3xl font-black font-mono text-cyan-400" aria-label={`Percentage: ${percentageScore} percent`}>
                     {percentageScore}%
                   </span>
                 </div>
@@ -287,9 +339,9 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
             </div>
 
             {/* Security Awareness Message */}
-            <div className={`p-5 rounded-2xl border text-left space-y-2 ${badgeColor}`}>
+            <div className={`p-5 rounded-2xl border text-left space-y-2 ${badgeColor}`} role="region" aria-label="Awareness feedback">
               <h3 className="font-bold text-sm sm:text-base flex items-center gap-2 text-white">
-                <ShieldCheck className="w-5 h-5 text-current shrink-0" />
+                <ShieldCheck className="w-5 h-5 text-current shrink-0" aria-hidden="true" />
                 <span>{awarenessTitle}</span>
               </h3>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
@@ -300,10 +352,11 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
             {/* Restart Quiz Button */}
             <div className="pt-2 flex justify-center">
               <button
+                type="button"
                 onClick={handleRestart}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm transition-all shadow-lg shadow-cyan-500/25 hover:scale-105"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm transition-all shadow-lg shadow-cyan-500/25 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-cyan-400"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4" aria-hidden="true" />
                 <span>Restart Quiz</span>
               </button>
             </div>
@@ -316,7 +369,7 @@ export default function PhishingQuiz({ onQuizCompleted, onShowToast }) {
             </h3>
 
             <div className="space-y-4">
-              {QUIZ_QUESTIONS.map((q, idx) => {
+              {questionsList.map((q, idx) => {
                 const answerRecord = answers.find(a => a.questionId === q.id);
                 const wasCorrect = answerRecord?.isCorrect;
 

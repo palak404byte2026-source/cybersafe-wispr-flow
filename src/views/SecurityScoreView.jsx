@@ -7,10 +7,7 @@ import {
   ShieldCheck,
   AlertTriangle,
   ArrowRight,
-  Sparkles,
   Lock,
-  RefreshCw,
-  CheckCircle2,
   Info
 } from 'lucide-react';
 import ScoreGauge from '../components/ScoreGauge';
@@ -27,9 +24,9 @@ export default function SecurityScoreView({
   // 1. Password Strength Result (up to 35 pts)
   // 2. Phishing Quiz Result (up to 35 pts)
   // 3. URL Safety Activity (up to 30 pts)
-  const passwordPoints = Math.min(35, Math.round((passwordScore / 100) * 35));
-  const quizPoints = quizCompleted ? Math.min(35, Math.round((quizScore / 100) * 35)) : 0;
-  const urlPoints = Math.min(30, scannedUrlsCount * 10);
+  const passwordPoints = Math.min(35, Math.round((Number(passwordScore) / 100) * 35));
+  const quizPoints = quizCompleted ? Math.min(35, Math.round((Number(quizScore) / 100) * 35)) : 0;
+  const urlPoints = Math.min(30, Number(scannedUrlsCount) * 10);
 
   const calculatedTotal = Math.min(100, passwordPoints + quizPoints + urlPoints);
 
@@ -67,7 +64,7 @@ export default function SecurityScoreView({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
         <div>
           <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-1">
-            <Activity className="w-4 h-4" />
+            <Activity className="w-4 h-4" aria-hidden="true" />
             <span>Unified Defense Scoreboard</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
@@ -80,7 +77,7 @@ export default function SecurityScoreView({
 
         <div>
           <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 font-medium">
-            <Lock className="w-3.5 h-3.5" />
+            <Lock className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Scores Only Stored • Never Passwords</span>
           </span>
         </div>
@@ -97,7 +94,7 @@ export default function SecurityScoreView({
               <span className="text-xs uppercase font-mono text-slate-400 block tracking-wider">
                 Current Posture Rating
               </span>
-              <span className={`text-2xl sm:text-3xl font-black font-mono ${levelColor}`}>
+              <span className={`text-2xl sm:text-3xl font-black font-mono ${levelColor}`} aria-live="polite">
                 {level}
               </span>
             </div>
@@ -106,27 +103,34 @@ export default function SecurityScoreView({
           {/* Connected 3 Pillars Breakdown */}
           <div className="lg:col-span-7 space-y-5">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300">
                 Connected Defense Activity Contributions (100 Pts Total)
-              </h3>
+              </h2>
               <p className="text-xs text-slate-400 mt-0.5">
                 Each completed tool directly increases your aggregate score in real-time.
               </p>
             </div>
 
-            <div className="space-y-3.5">
+            <div className="space-y-3.5" role="list">
               {/* Pillar 1: Password Strength */}
-              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2">
+              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2" role="listitem">
                 <div className="flex items-center justify-between text-xs sm:text-sm font-semibold">
                   <div className="flex items-center gap-2.5 text-white">
-                    <KeyRound className="w-4 h-4 text-cyan-400" />
+                    <KeyRound className="w-4 h-4 text-cyan-400" aria-hidden="true" />
                     <span>Password Strength Evaluation</span>
                   </div>
-                  <span className="font-mono text-cyan-400 font-bold">
+                  <span className="font-mono text-cyan-400 font-bold" aria-label={`Password score contribution: ${passwordPoints} out of 35 points`}>
                     {passwordPoints} / 35 pts
                   </span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                <div
+                  className="w-full h-2 rounded-full bg-slate-800 overflow-hidden"
+                  role="progressbar"
+                  aria-valuenow={passwordPoints}
+                  aria-valuemin="0"
+                  aria-valuemax="35"
+                  aria-label={`Password points: ${passwordPoints} of 35`}
+                >
                   <div
                     className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
                     style={{ width: `${(passwordPoints / 35) * 100}%` }}
@@ -135,27 +139,36 @@ export default function SecurityScoreView({
                 <div className="flex items-center justify-between text-xs text-slate-400 pt-0.5">
                   <span>Tested Strength: {passwordScore > 0 ? `${passwordScore}%` : 'Not tested yet'}</span>
                   <button
+                    type="button"
                     onClick={() => setCurrentView('passwords')}
-                    className="text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1"
+                    className="text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-cyan-400 rounded px-1"
+                    aria-label="Open Password Strength Checker"
                   >
                     <span>Check Password</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                   </button>
                 </div>
               </div>
 
               {/* Pillar 2: Phishing Quiz */}
-              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2">
+              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2" role="listitem">
                 <div className="flex items-center justify-between text-xs sm:text-sm font-semibold">
                   <div className="flex items-center gap-2.5 text-white">
-                    <Fish className="w-4 h-4 text-blue-400" />
+                    <Fish className="w-4 h-4 text-blue-400" aria-hidden="true" />
                     <span>Phishing Awareness Quiz</span>
                   </div>
-                  <span className="font-mono text-blue-400 font-bold">
+                  <span className="font-mono text-blue-400 font-bold" aria-label={`Phishing quiz score contribution: ${quizPoints} out of 35 points`}>
                     {quizPoints} / 35 pts
                   </span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                <div
+                  className="w-full h-2 rounded-full bg-slate-800 overflow-hidden"
+                  role="progressbar"
+                  aria-valuenow={quizPoints}
+                  aria-valuemin="0"
+                  aria-valuemax="35"
+                  aria-label={`Quiz points: ${quizPoints} of 35`}
+                >
                   <div
                     className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-500"
                     style={{ width: `${(quizPoints / 35) * 100}%` }}
@@ -164,27 +177,36 @@ export default function SecurityScoreView({
                 <div className="flex items-center justify-between text-xs text-slate-400 pt-0.5">
                   <span>Quiz Accuracy: {quizCompleted ? `${Math.round(quizScore)}%` : 'Incomplete'}</span>
                   <button
+                    type="button"
                     onClick={() => setCurrentView('quiz')}
-                    className="text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1"
+                    className="text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-cyan-400 rounded px-1"
+                    aria-label="Open Phishing Awareness Quiz"
                   >
                     <span>Take Quiz</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                   </button>
                 </div>
               </div>
 
               {/* Pillar 3: URL Safety Activity */}
-              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2">
+              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2" role="listitem">
                 <div className="flex items-center justify-between text-xs sm:text-sm font-semibold">
                   <div className="flex items-center gap-2.5 text-white">
-                    <Link2 className="w-4 h-4 text-emerald-400" />
+                    <Link2 className="w-4 h-4 text-emerald-400" aria-hidden="true" />
                     <span>URL Safety Activity & Audits</span>
                   </div>
-                  <span className="font-mono text-emerald-400 font-bold">
+                  <span className="font-mono text-emerald-400 font-bold" aria-label={`URL safety score contribution: ${urlPoints} out of 30 points`}>
                     {urlPoints} / 30 pts
                   </span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                <div
+                  className="w-full h-2 rounded-full bg-slate-800 overflow-hidden"
+                  role="progressbar"
+                  aria-valuenow={urlPoints}
+                  aria-valuemin="0"
+                  aria-valuemax="30"
+                  aria-label={`URL points: ${urlPoints} of 30`}
+                >
                   <div
                     className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500"
                     style={{ width: `${(urlPoints / 30) * 100}%` }}
@@ -193,11 +215,13 @@ export default function SecurityScoreView({
                 <div className="flex items-center justify-between text-xs text-slate-400 pt-0.5">
                   <span>Checked Links: {scannedUrlsCount} of 3 goal</span>
                   <button
+                    type="button"
                     onClick={() => setCurrentView('url')}
-                    className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1"
+                    className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-cyan-400 rounded px-1"
+                    aria-label="Open URL Safety Checker"
                   >
                     <span>Check URL</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -207,21 +231,21 @@ export default function SecurityScoreView({
       </div>
 
       {/* Recommendation Card based on Score */}
-      <div className={`p-6 rounded-2xl border shadow-xl space-y-2.5 ${badgeStyle}`}>
+      <div className={`p-6 rounded-2xl border shadow-xl space-y-2.5 ${badgeStyle}`} role="region" aria-label="Score recommendation">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-current shrink-0" />
-          <h3 className="font-bold text-base text-white">
+          <ShieldCheck className="w-5 h-5 text-current shrink-0" aria-hidden="true" />
+          <h2 className="font-bold text-base text-white">
             Personalized Posture Recommendation
-          </h3>
+          </h2>
         </div>
-        <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+        <p className="text-xs sm:text-sm text-slate-200 leading-relaxed" aria-live="polite">
           {recommendation}
         </p>
       </div>
 
       {/* Privacy Notice on Storage */}
-      <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 flex items-start gap-3">
-        <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+      <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 flex items-start gap-3" role="region" aria-label="Storage privacy notice">
+        <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" aria-hidden="true" />
         <p className="leading-relaxed">
           <strong>Storage Safety Notice:</strong> CyberSafe stores only non-sensitive numerical scores, quiz percentage, and URL scan counts locally in your browser’s <code className="text-cyan-300 font-mono">localStorage</code>. <strong>Your actual passwords are never stored, saved, or persisted anywhere</strong>.
         </p>

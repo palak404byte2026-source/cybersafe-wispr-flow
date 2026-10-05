@@ -5,7 +5,7 @@ export default function ScoreGauge({ score = 0, size = 180, strokeWidth = 14, sh
   const circumference = 2 * Math.PI * radius;
   // Arc gauge showing 75% circle (270 degrees)
   const arcLength = circumference * 0.75;
-  const normalizedScore = Math.min(100, Math.max(0, Math.round(score)));
+  const normalizedScore = Math.min(100, Math.max(0, Math.round(Number(score) || 0)));
   const strokeDashoffset = arcLength - (arcLength * normalizedScore) / 100;
 
   // Exact 4 levels: Needs Improvement, Fair, Good, Intelligent / Excellent
@@ -32,13 +32,21 @@ export default function ScoreGauge({ score = 0, size = 180, strokeWidth = 14, sh
   }
 
   return (
-    <div className="flex flex-col items-center justify-center relative">
+    <div
+      className="flex flex-col items-center justify-center relative"
+      role="meter"
+      aria-label={`Overall Security Score: ${normalizedScore} out of 100 (${statusText})`}
+      aria-valuenow={normalizedScore}
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
       <div className="relative" style={{ width: size, height: size }}>
         <svg
           width={size}
           height={size}
           className="transform -rotate-135"
           viewBox={`0 0 ${size} ${size}`}
+          aria-hidden="true"
         >
           {/* Background track */}
           <circle
@@ -83,8 +91,8 @@ export default function ScoreGauge({ score = 0, size = 180, strokeWidth = 14, sh
       {showDetails && (
         <div className="mt-2 text-center">
           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${badgeBg}`}>
-            <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: strokeColor }}></span>
-            {statusText}
+            <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: strokeColor }} aria-hidden="true"></span>
+            <span>{statusText}</span>
           </span>
         </div>
       )}
